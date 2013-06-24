@@ -1,0 +1,17 @@
+Description: Do not create persistent net rules for Eucalyuptus addresses. These do not have an officially assigned MAC address range and thus cannot be applied upstream.
+Author: Scott Moser
+Bug-Ubuntu: https://launchpad.net/bugs/719418
+
+--- a/extras/rule_generator/75-persistent-net-generator.rules     2011-04-18 03:11:53 +0000
++++ b/extras/rule_generator/75-persistent-net-generator.rules     2011-05-16 12:31:51 +0000
+@@ -35,6 +35,8 @@
+ ENV{MATCHADDR}=="00:0c:29:*|00:50:56:*", GOTO="persistent_net_generator_end"
+ # ignore Hyper-V virtual interfaces
+ ENV{MATCHADDR}=="00:15:5d:*", GOTO="persistent_net_generator_end"
++# ignore Eucalyptus virtual interfaces
++ENV{MATCHADDR}=="d0:0d:*", GOTO="persistent_net_generator_end"
+
+ # These vendors are known to violate the local MAC address assignment scheme
+ # Interlan, DEC (UNIBUS or QBUS), Apollo, Cisco, Racal-Datacom
+
+

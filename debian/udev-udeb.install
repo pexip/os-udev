@@ -1,0 +1,28 @@
+etc/udev/rules.d
+etc/udev/udev.conf
+lib/udev/ata_id
+lib/udev/cdrom_id
+lib/udev/collect
+lib/udev/devices
+lib/udev/firmware
+lib/udev/mtd_probe
+lib/udev/rule_generator.functions
+lib/udev/scsi_id
+lib/udev/write_cd_rules
+lib/udev/write_net_rules
+lib/udev/rules.d/42-qemu-usb.rules
+lib/udev/rules.d/50-firmware.rules
+lib/udev/rules.d/50-udev-default.rules
+lib/udev/rules.d/60-cdrom_id.rules
+lib/udev/rules.d/60-persistent-input.rules
+lib/udev/rules.d/60-persistent-serial.rules
+lib/udev/rules.d/60-persistent-storage.rules
+lib/udev/rules.d/75-cd-aliases-generator.rules
+lib/udev/rules.d/75-persistent-net-generator.rules
+lib/udev/rules.d/75-probe_mtd.rules
+lib/udev/rules.d/80-drivers.rules
+
+sbin/udevadm
+sbin/udevd
+../../rules/arch/40-ia64.rules lib/udev/rules.d
+../../rules/arch/40-ppc.rules lib/udev/rules.d

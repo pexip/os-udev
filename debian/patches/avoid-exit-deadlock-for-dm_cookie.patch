@@ -1,0 +1,160 @@
+Description: do not exit when a DM_COOKIE event is pending.
+Author: Herton R. Krzesinski
+Ubuntu-Bug: https://bugs.launchpad.net/ubuntu/+source/lvm2/+bug/802626
+
+--- a/libudev/libudev-device.c
++++ b/libudev/libudev-device.c
+@@ -89,6 +89,7 @@
+ 	bool is_initialized;
+ 	bool sysattr_list_read;
+ 	bool db_persist;
++	bool dm_cookie_set;
+ };
+ 
+ /**
+@@ -345,6 +346,27 @@
+ 	return 0;
+ }
+ 
++/**
++ * udev_device_get_dm_cookie_set:
++ * @udev_device: udev device
++ *
++ * Retrieve the status of DM_COOKIE available for this udev device.
++ *
++ * Returns: true if DM_COOKIE was set for this device, false otherwise
++ **/
++UDEV_EXPORT bool udev_device_get_dm_cookie_set(struct udev_device *udev_device)
++{
++	if (udev_device == NULL)
++		return NULL;
++	return udev_device->dm_cookie_set;
++}
++
++static int udev_device_set_dm_cookie_set(struct udev_device *udev_device)
++{
++	udev_device->dm_cookie_set = true;
++	return 0;
++}
++
+ struct udev_list_entry *udev_device_add_property(struct udev_device *udev_device, const char *key, const char *value)
+ {
+ 	udev_device->envp_uptodate = false;
+@@ -457,6 +479,9 @@
+ 		udev_device_set_ifindex(udev_device, strtoull(&property[8], NULL, 10));
+ 	} else if (strncmp(property, "DEVMODE=", 8) == 0) {
+ 		udev_device_set_devnode_mode(udev_device, strtoul(&property[8], NULL, 8));
++	} else if (strncmp(property, "DM_COOKIE=", 10) == 0) {
++		udev_device_set_dm_cookie_set(udev_device);
++		udev_device_add_property_from_string(udev_device, property);
+ 	} else {
+ 		udev_device_add_property_from_string(udev_device, property);
+ 	}
+--- a/libudev/libudev-private.h
++++ b/libudev/libudev-private.h
+@@ -101,6 +101,7 @@
+ void udev_device_set_info_loaded(struct udev_device *device);
+ bool udev_device_get_db_persist(struct udev_device *udev_device);
+ void udev_device_set_db_persist(struct udev_device *udev_device);
++bool udev_device_get_dm_cookie_set(struct udev_device *udev_device);
+ 
+ /* libudev-device-private.c */
+ int udev_device_update_db(struct udev_device *udev_device);
+--- a/udev/udevd.c
++++ b/udev/udevd.c
+@@ -568,6 +568,7 @@
+ static void event_queue_start(struct udev *udev)
+ {
+ 	struct udev_list_node *loop;
++	bool force;
+ 
+ 	udev_list_node_foreach(loop, &event_list) {
+ 		struct event *event = node_to_event(loop);
+@@ -575,17 +576,23 @@
+ 		if (event->state != EVENT_QUEUED)
+ 			continue;
+ 
++		/* do not schedule any more events if we are exiting,
++		   but we must process any remaining DM_COOKIE events */
++		force = udev_device_get_dm_cookie_set(event->dev);
++		if (udev_exit && !force)
++			continue;
++
+ 		/* do not start event if parent or child event is still running */
+ 		if (is_devpath_busy(event)) {
+ 			dbg(udev, "delay seq %llu (%s)\n", event->seqnum, event->devpath);
+ 			continue;
+ 		}
+ 
+-		event_run(event, false);
++		event_run(event, force);
+ 	}
+ }
+ 
+-static void __event_queue_cleanup(struct udev *udev, enum event_state match_type, bool keep_timely)
++static void __event_queue_cleanup(struct udev *udev, enum event_state match_type, bool must_keep)
+ {
+ 	struct udev_list_node *loop, *tmp;
+ 
+@@ -595,9 +602,13 @@
+ 		if (match_type != EVENT_UNDEF && match_type != event->state)
+ 			continue;
+ 
+-		/* Keep events which have timelyness requirements
+-		 * we will skew these timeouts on coldplug. */
+-		if (keep_timely && udev_device_get_timeout(event->dev) > 0)
++		/* Keep events which have timelyness requirements,
++                 * we will skew these timeouts on coldplug. Also,
++                 * dm events with DM_COOKIE set must be kept and
++                 * processed to avoid potential lvm tools deadlock on
++		 * udev_exit */
++		if (must_keep && (udev_device_get_timeout(event->dev) > 0 ||
++		                  udev_device_get_dm_cookie_set(event->dev)))
+ 			continue;
+ 
+ 		event_queue_delete(event, false);
+@@ -609,7 +620,7 @@
+ 	__event_queue_cleanup(udev, match_type, false);
+ }
+ 
+-static void event_queue_cleanup_nontimely(struct udev *udev, enum event_state match_type)
++static void event_queue_cleanup_onexit(struct udev *udev, enum event_state match_type)
+ {
+ 	__event_queue_cleanup(udev, match_type, true);
+ }
+@@ -1635,8 +1646,8 @@
+ 				fd_inotify = -1;
+ 			}
+ 
+-			/* discard queued non-timely events and kill workers */
+-			event_queue_cleanup_nontimely(udev, EVENT_QUEUED);
++			/* discard most queued events and kill workers */
++			event_queue_cleanup_onexit(udev, EVENT_QUEUED);
+ 			worker_kill(udev, 0);
+ 
+ 			/* exit after all has cleaned up */
+@@ -1688,9 +1699,12 @@
+ 
+ 			dev = udev_monitor_receive_device(monitor);
+ 			if (dev != NULL) {
+-				/* If we are exiting then only schedule events with
+-				 * timeliness requirements. */
+-				if (!udev_exit || udev_device_get_timeout(dev) > 0) {
++				/* If we are exiting then only schedule critical
++				 * events (with timeliness requirements or with
++				 * DM_COOKIE set). */
++				if (!udev_exit ||
++				    udev_device_get_timeout(dev) > 0 ||
++				    udev_device_get_dm_cookie_set(dev)) {
+ 					udev_device_set_usec_initialized(dev, now_usec());
+ 					if (event_queue_insert(dev) < 0)
+ 						udev_device_unref(dev);
+@@ -1700,7 +1714,7 @@
+ 		}
+ 
+ 		/* start new events */
+-		if (!udev_list_node_is_empty(&event_list) && !udev_exit && !stop_exec_queue)
++		if (!udev_list_node_is_empty(&event_list) && !stop_exec_queue)
+ 			event_queue_start(udev);
+ 
+ 		if (is_signal) {

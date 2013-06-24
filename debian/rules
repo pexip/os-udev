@@ -1,0 +1,223 @@
+#!/usr/bin/make -f
+# debian/rules for the udev package.
+# Copyright © 2009 Canonical Ltd.
+# Author: Scott James Remnant <scott@ubuntu.com>
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+export DH_OPTIONS
+
+CFLAGS = -Wall -g -fstack-protector -fPIE
+LDFLAGS = -Wl,-z,relro -Wl,-z,now -pie
+
+# Disable optimisations if noopt found in $DEB_BUILD_OPTIONS
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+	LDFLAGS += -Wl,-O0
+else
+	CFLAGS += -Os
+	LDFLAGS += -Wl,-O1
+endif
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_MULTIARCH  ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
+	confflags += --build=$(DEB_HOST_GNU_TYPE)
+	confflags += --enable-gtk-doc --enable-introspection
+else
+	confflags += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+	confflags += --disable-gtk-doc --disable-introspection
+	DH_INSTALL_ARGS += -Xusr/share/gtk-doc -Xusr/share/gir-1.0
+	# XXX use DH_OPTIONS -Ngir1.2-gudev-1.0 instead?
+	DH_INSTALL_ARGS += -Ngir1.2-gudev-1.0
+endif
+
+VERSION = $(shell dpkg-parsechangelog | sed -n -e '/^Version:/s/.*: //p')
+UPSTREAM = $(shell echo $(VERSION) | sed -e 's/-[^-]*$$//')
+
+DPKG_GENSYMBOLS_CHECK_LEVEL=4
+export DPKG_GENSYMBOLS_CHECK_LEVEL
+
+# Configure the package
+debian/autoreconf.after:
+	dh_autoreconf
+
+build-deb/config.status: configure debian/autoreconf.after
+	[ -d build-deb ] || mkdir build-deb
+	# work around gtk-doc not being able to work in a separate build tree
+	# by copying the entire lot
+	cp -a `find -maxdepth 1 ! -name 'build*deb' ! -name 'debian' ! -name '.*'` build-deb
+	cd build-deb && ./configure \
+		$(confflags) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--sbindir=/sbin \
+		--libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) \
+		--with-rootlibdir=/lib/$(DEB_HOST_MULTIARCH) \
+		--libexecdir=/lib/udev \
+		--with-systemdsystemunitdir=/lib/systemd/system \
+		--mandir=\$${datadir}/man \
+		--infodir=\$${infodir}/info \
+		--with-pci-ids-path=/usr/share/misc/pci.ids \
+		--with-selinux \
+		--enable-static \
+		--enable-rule_generator \
+		--enable-udev_acl
+
+# Build the package
+build-deb: build-deb/build-stamp
+build-deb/build-stamp: build-deb/config.status
+	dh_testdir
+
+	$(MAKE) -C build-deb
+	touch $@
+
+# Install files into the deb
+install-deb: DH_OPTIONS=-Nudev-udeb
+install-deb: build-deb
+	dh_testdir
+	dh_testroot
+	dh_prep
+	for file in libgudev-1.0-0.install; \
+	do \
+		sed -e"s,\$${DEB_HOST_MULTIARCH},${DEB_HOST_MULTIARCH},g" \
+			debian/$${file}.in > debian/$$file; \
+	done
+	dh_installdirs -v
+
+	$(MAKE) -C build-deb DESTDIR="$(CURDIR)/debian/tmp" install
+
+	# we want the daemon in /sbin
+	mv debian/tmp/lib/udev/udevd debian/tmp/sbin
+
+	# we install gudev into /usr/lib/, fix link
+	T=`readlink debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/libgudev-1.0.so`; \
+	  rm debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/libgudev-1.0.so; \
+	  ln -s /usr/lib/$(DEB_HOST_MULTIARCH)/`basename $$T` debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/libgudev-1.0.so
+	# Fix up dependency_libs in libtool .la files
+	for file in `find debian/tmp/usr/lib/ -name \*.la`; do \
+		sed -i "/dependency_libs/ s/'.*'/''/" $$file ; \
+	done
+
+	# Documentation
+	install -m 644 -o root -g root debian/README-etc-rules.d \
+		debian/udev/etc/udev/rules.d/README
+	install -m 644 -o root -g root debian/README-lib-rules.d \
+		debian/udev/lib/udev/rules.d/README
+
+	# Hook into initramfs-tools
+	install -m 755 -o root -g root debian/udev.initramfs-hook \
+		debian/udev/usr/share/initramfs-tools/hooks/udev
+	install -m 755 -o root -g root debian/udev.initramfs-top \
+		debian/udev/usr/share/initramfs-tools/scripts/init-top/udev
+	install -m 755 -o root -g root debian/udev.initramfs-nfs \
+		debian/udev/usr/share/initramfs-tools/scripts/nfs-top/udev
+	install -m 755 -o root -g root debian/udev.initramfs-bottom \
+		debian/udev/usr/share/initramfs-tools/scripts/init-bottom/udev
+
+
+# Configure the udeb
+build-udeb/config.status: configure debian/autoreconf.after
+	[ -d build-udeb ] || mkdir build-udeb
+	cd build-udeb && ../configure \
+		$(confflags) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--sbindir=/sbin \
+		--libdir=/usr/lib \
+		--with-rootlibdir=/lib \
+		--libexecdir=/lib/udev \
+		--mandir=\$${datadir}/man \
+		--infodir=\$${infodir}/info \
+		--with-pci-ids-path=/usr/share/misc/pci.ids \
+		--without-selinux \
+		--enable-static
+
+# Build the package
+build-udeb: build-udeb/build-stamp
+build-udeb/build-stamp: build-udeb/config.status
+	dh_testdir
+
+	$(MAKE) -C build-udeb
+	touch $@
+
+
+# Install files into the udeb
+install-udeb: DH_OPTIONS=-pudev-udeb
+install-udeb: build-udeb
+	dh_testdir
+	dh_testroot
+	dh_prep -Xdebian/tmp
+	rm -rf debian/tmp-udeb
+	dh_installdirs
+
+	$(MAKE) -C build-udeb DESTDIR="$(CURDIR)/debian/tmp-udeb" install
+
+	# we want the daemon in /sbin
+	mv debian/tmp-udeb/lib/udev/udevd debian/tmp-udeb/sbin
+
+	# Startup script
+	install -m 755 -o root -g root debian/udev.installer-startup \
+		debian/udev-udeb/lib/debian-installer/start-udev
+
+	# base-installer script
+	install -m 755 -o root -g root debian/udev.base-installer \
+		debian/udev-udeb/usr/lib/base-installer.d/05udev
+
+
+build: build-deb build-udeb
+
+binary: binary-indep binary-arch
+
+# Build architecture-independent files here.
+binary-indep:
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: DH_OPTIONS=-a
+binary-arch: build install-deb install-udeb
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs ChangeLog
+	dh_installdocs
+	dh_installexamples
+	dh_installinit --no-start -- start 10 S .
+	dh_installinit --name=udev-finish --no-start -- start 37 S .
+	dh_installinit --upstart-only --name=udevtrigger --no-start
+	dh_installinit --upstart-only --name=udevmonitor --no-start
+	dh_installinit --upstart-only --name=udev-fallback-graphics --no-start
+	dh_install --sourcedir=debian/tmp -Nudev-udeb -Nlibudev0-udeb --fail-missing $(DH_INSTALL_ARGS)
+	DH_OPTIONS= dh_install --sourcedir=debian/tmp-udeb -pudev-udeb -plibudev0-udeb $(DH_INSTALL_ARGS)
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms -X/lib/udev/devices/
+	DH_OPTIONS= dh_makeshlibs -plibudev0 -V 'libudev0 (>= 147)' --add-udeb=libudev0-udeb
+	DH_OPTIONS= dh_makeshlibs -plibgudev-1.0-0 -V 'libgudev-1.0-0 (>= 147)'
+	DH_OPTIONS= dh_makeshlibs -Nlibudev0 -Nlibgudev-1.0-0
+	dh_shlibdeps
+	dh_girepository
+	dh_installdeb
+	DH_OPTIONS= dh_gencontrol -Nlibgudev-1.0-0 -Nlibgudev-1.0-dev
+	DH_OPTIONS= dh_gencontrol -plibgudev-1.0-0 -plibgudev-1.0-dev -- "-v1:$(VERSION)"
+	dh_md5sums
+	dh_builddeb
+
+
+# Clean up the mess we made
+clean:
+	dh_testdir
+	dh_autoreconf_clean
+
+	rm -rf build-deb build-udeb debian/tmp-udeb
+	dh_clean 
+
+
+.PHONY: build-deb build-udeb build install-deb install-udeb \
+	binary-indep binary-arch binary clean
+

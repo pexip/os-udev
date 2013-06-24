@@ -1,0 +1,85 @@
+Index: lp842560-v2/udev/udevd.c
+===================================================================
+--- lp842560-v2.orig/udev/udevd.c	2011-12-16 10:55:57.000000000 +0000
++++ lp842560-v2/udev/udevd.c	2011-12-16 10:56:01.000000000 +0000
+@@ -585,7 +585,7 @@
+ 	}
+ }
+ 
+-static void event_queue_cleanup(struct udev *udev, enum event_state match_type)
++static void __event_queue_cleanup(struct udev *udev, enum event_state match_type, bool keep_timely)
+ {
+ 	struct udev_list_node *loop, *tmp;
+ 
+@@ -595,10 +595,25 @@
+ 		if (match_type != EVENT_UNDEF && match_type != event->state)
+ 			continue;
+ 
++		/* Keep events which have timelyness requirements
++		 * we will skew these timeouts on coldplug. */
++		if (keep_timely && udev_device_get_timeout(event->dev) > 0)
++			continue;
++
+ 		event_queue_delete(event, false);
+ 	}
+ }
+ 
++static void event_queue_cleanup(struct udev *udev, enum event_state match_type)
++{
++	__event_queue_cleanup(udev, match_type, false);
++}
++
++static void event_queue_cleanup_nontimely(struct udev *udev, enum event_state match_type)
++{
++	__event_queue_cleanup(udev, match_type, true);
++}
++
+ static void worker_returned(int fd_worker)
+ {
+ 	for (;;) {
+@@ -1607,24 +1622,21 @@
+ 		int i;
+ 
+ 		if (udev_exit) {
+-			/* close sources of new events and discard buffered events */
++			/* close sources of new events and discard buffered events,
++			 * keep the kernel channel so we can pick out events with a
++			 * timeliness requirement to avoid deadlock. */
+ 			if (fd_ctrl >= 0) {
+ 				epoll_ctl(fd_ep, EPOLL_CTL_DEL, fd_ctrl, NULL);
+ 				fd_ctrl = -1;
+ 			}
+-			if (monitor != NULL) {
+-				epoll_ctl(fd_ep, EPOLL_CTL_DEL, fd_netlink, NULL);
+-				udev_monitor_unref(monitor);
+-				monitor = NULL;
+-			}
+ 			if (fd_inotify >= 0) {
+ 				epoll_ctl(fd_ep, EPOLL_CTL_DEL, fd_inotify, NULL);
+ 				close(fd_inotify);
+ 				fd_inotify = -1;
+ 			}
+ 
+-			/* discard queued events and kill workers */
+-			event_queue_cleanup(udev, EVENT_QUEUED);
++			/* discard queued non-timely events and kill workers */
++			event_queue_cleanup_nontimely(udev, EVENT_QUEUED);
+ 			worker_kill(udev, 0);
+ 
+ 			/* exit after all has cleaned up */
+@@ -1676,8 +1688,13 @@
+ 
+ 			dev = udev_monitor_receive_device(monitor);
+ 			if (dev != NULL) {
+-				udev_device_set_usec_initialized(dev, now_usec());
+-				if (event_queue_insert(dev) < 0)
++				/* If we are exiting then only schedule events with
++				 * timeliness requirements. */
++				if (!udev_exit || udev_device_get_timeout(dev) > 0) {
++					udev_device_set_usec_initialized(dev, now_usec());
++					if (event_queue_insert(dev) < 0)
++						udev_device_unref(dev);
++				} else
+ 					udev_device_unref(dev);
+ 			}
+ 		}

@@ -1,0 +1,1 @@
+/lib/${DEB_HOST_MULTIARCH}/libgudev*.so.* usr/lib/${DEB_HOST_MULTIARCH}

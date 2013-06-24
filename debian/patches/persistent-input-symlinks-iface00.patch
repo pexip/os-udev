@@ -1,0 +1,38 @@
+From fb5d873cfd4606383964c707da0ec21ebaa1c04b Mon Sep 17 00:00:00 2001
+From: Martin Pitt <martinpitt@gnome.org>
+Date: Thu, 11 Oct 2012 08:21:17 +0200
+Subject: [PATCH] rules: Fix persistent input symlinks for interface 00
+
+Commits 5e9eb156c and 32567f8 introduced persistent symlinks for input devices
+with more than one interface. However, this does not ensure stability for the
+"default" interface, i. e. with interface number 00 or a nonexisting one. If a
+device with a higher interface number appears first, it'll claim the symlink
+name without an interface number, and the "interface 00" device won't get any.
+
+Fix this by creating the default symlink only for interface 00 or a nonexisting
+one, so that we properly partition the two cases over the two rules.
+
+https://launchpad.net/bugs/1057824
+---
+ rules/60-persistent-input.rules |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/rules/60-persistent-input.rules b/rules/60-persistent-input.rules
+index fb798dd..0e33e68 100644
+--- a/rules/rules.d/60-persistent-input.rules
++++ b/rules/rules.d/60-persistent-input.rules
+@@ -19,9 +19,9 @@ ATTRS{name}=="*dvb*|*DVB*|* IR *", ENV{.INPUT_CLASS}="ir"
+ ENV{.INPUT_CLASS}=="?*", ENV{ID_SERIAL}=="", ENV{ID_SERIAL}="noserial"
+ 
+ # by-id links
+-KERNEL=="mouse*|js*", ENV{ID_BUS}=="?*", ENV{.INPUT_CLASS}=="?*", SYMLINK+="input/by-id/$env{ID_BUS}-$env{ID_SERIAL}-$env{.INPUT_CLASS}"
++KERNEL=="mouse*|js*", ENV{ID_BUS}=="?*", ENV{.INPUT_CLASS}=="?*", ATTRS{bInterfaceNumber}=="|00", SYMLINK+="input/by-id/$env{ID_BUS}-$env{ID_SERIAL}-$env{.INPUT_CLASS}"
+ KERNEL=="mouse*|js*", ENV{ID_BUS}=="?*", ENV{.INPUT_CLASS}=="?*", ATTRS{bInterfaceNumber}=="?*", ATTRS{bInterfaceNumber}!="00", SYMLINK+="input/by-id/$env{ID_BUS}-$env{ID_SERIAL}-if$attr{bInterfaceNumber}-$env{.INPUT_CLASS}"
+-KERNEL=="event*", ENV{ID_BUS}=="?*", ENV{.INPUT_CLASS}=="?*", SYMLINK+="input/by-id/$env{ID_BUS}-$env{ID_SERIAL}-event-$env{.INPUT_CLASS}"
++KERNEL=="event*", ENV{ID_BUS}=="?*", ENV{.INPUT_CLASS}=="?*", ATTRS{bInterfaceNumber}=="|00", SYMLINK+="input/by-id/$env{ID_BUS}-$env{ID_SERIAL}-event-$env{.INPUT_CLASS}"
+ KERNEL=="event*", ENV{ID_BUS}=="?*", ENV{.INPUT_CLASS}=="?*", ATTRS{bInterfaceNumber}=="?*", ATTRS{bInterfaceNumber}!="00", SYMLINK+="input/by-id/$env{ID_BUS}-$env{ID_SERIAL}-if$attr{bInterfaceNumber}-event-$env{.INPUT_CLASS}"
+ # allow empty class for USB devices, by appending the interface number
+ SUBSYSTEMS=="usb", ENV{ID_BUS}=="?*", KERNEL=="event*", ENV{.INPUT_CLASS}=="", ATTRS{bInterfaceNumber}=="?*", \
+-- 
+1.7.10.4
+

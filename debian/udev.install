@@ -1,0 +1,16 @@
+usr/share/man/*/*
+etc/udev/rules.d
+etc/udev/udev.conf
+lib/udev/*
+lib/systemd/
+lib/udev/rules.d/*
+sbin/udevadm
+sbin/udevd
+usr/lib/ConsoleKit
+usr/share/doc/udev
+usr/share/pkgconfig/udev.pc
+../../rules/arch/40-ia64.rules lib/udev/rules.d
+../../rules/arch/40-ppc.rules lib/udev/rules.d
+../local/udev.py usr/share/apport/package-hooks
+../local/hotplug.functions lib/udev/
+../local/78-graphics-card.rules lib/udev/rules.d

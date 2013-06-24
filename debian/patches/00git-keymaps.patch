@@ -1,0 +1,491 @@
+Index: udev-175/Makefile.am
+===================================================================
+--- udev-175.orig/Makefile.am	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/Makefile.am	2013-06-24 12:27:35.435873894 +0200
+@@ -493,6 +493,7 @@
+ 	extras/keymap/keymaps/dell \
+ 	extras/keymap/keymaps/dell-latitude-xt2 \
+ 	extras/keymap/keymaps/everex-xt5000 \
++	extras/keymap/keymaps/fujitsu-amilo_li_2732 \
+ 	extras/keymap/keymaps/fujitsu-amilo_pa_2548 \
+ 	extras/keymap/keymaps/fujitsu-amilo_pro_edition_v3505 \
+ 	extras/keymap/keymaps/fujitsu-amilo_pro_v3205 \
+@@ -507,6 +508,9 @@
+ 	extras/keymap/keymaps/hewlett-packard-presario-2100 \
+ 	extras/keymap/keymaps/hewlett-packard-tablet \
+ 	extras/keymap/keymaps/hewlett-packard-tx2 \
++	extras/keymap/keymaps/hewlett-packard-hdx9494nr \
++	extras/keymap/keymaps/hewlett-packard_elitebook-8440p \
++	extras/keymap/keymaps/hewlett-packard_elitebook-8460p \
+ 	extras/keymap/keymaps/ibm-thinkpad-usb-keyboard-trackpoint \
+ 	extras/keymap/keymaps/inventec-symphony_6.0_7.0 \
+ 	extras/keymap/keymaps/lenovo-3000 \
+@@ -518,6 +522,7 @@
+ 	extras/keymap/keymaps/logitech-wave \
+ 	extras/keymap/keymaps/logitech-wave-cordless \
+ 	extras/keymap/keymaps/logitech-wave-pro-cordless \
++	extras/keymap/keymaps/logitech-usb \
+ 	extras/keymap/keymaps/maxdata-pro_7000 \
+ 	extras/keymap/keymaps/medion-fid2060 \
+ 	extras/keymap/keymaps/medionnb-a555 \
+@@ -528,12 +533,14 @@
+ 	extras/keymap/keymaps/module-sony \
+ 	extras/keymap/keymaps/module-sony-old \
+ 	extras/keymap/keymaps/module-sony-vgn \
++	extras/keymap/keymaps/module-sony-vpc \
+ 	extras/keymap/keymaps/olpc-xo \
+ 	extras/keymap/keymaps/onkyo \
+ 	extras/keymap/keymaps/oqo-model2 \
+ 	extras/keymap/keymaps/samsung-other \
+ 	extras/keymap/keymaps/samsung-sq1us \
+ 	extras/keymap/keymaps/samsung-sx20s \
++	extras/keymap/keymaps/samsung-series-9 \
+ 	extras/keymap/keymaps/toshiba-satellite_a100 \
+ 	extras/keymap/keymaps/toshiba-satellite_a110 \
+ 	extras/keymap/keymaps/toshiba-satellite_m30x \
+@@ -542,8 +549,11 @@
+ udevkeymapforcereldir = $(libexecdir)/keymaps/force-release
+ dist_udevkeymapforcerel_DATA = \
+ 	extras/keymap/force-release-maps/dell-touchpad \
++	extras/keymap/force-release-maps/dell-xps \
+ 	extras/keymap/force-release-maps/hp-other \
+ 	extras/keymap/force-release-maps/samsung-other \
++	extras/keymap/force-release-maps/samsung-90x3a \
++	extras/keymap/force-release-maps/samsung-series-9 \
+ 	extras/keymap/force-release-maps/common-volume-keys
+ 
+ extras/keymap/keys.txt: $(INCLUDE_PREFIX)/linux/input.h
+Index: udev-175/extras/keymap/95-keymap.rules
+===================================================================
+--- udev-175.orig/extras/keymap/95-keymap.rules	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/95-keymap.rules	2013-06-24 12:22:27.487858990 +0200
+@@ -23,6 +23,7 @@
+ ENV{ID_VENDOR}=="Genius", ENV{ID_MODEL_ID}=="0708", ENV{ID_USB_INTERFACE_NUM}=="01", RUN+="keymap $name genius-slimstar-320"
+ ENV{ID_VENDOR}=="Logitech*", ATTRS{name}=="Logitech USB Multimedia Keyboard", RUN+="keymap $name logitech-wave"
+ ENV{ID_VENDOR}=="Logitech*", ATTRS{name}=="Logitech USB Receiver", RUN+="keymap $name logitech-wave-cordless"
++ENV{ID_VENDOR}=="Logitech*", ATTRS{name}=="* Logitech USB Keyboard*", RUN+="keymap $name logitech-usb"
+ # Logitech Cordless Wave Pro looks slightly weird; some hotkeys are coming through the mouse interface
+ ENV{ID_VENDOR_ID}=="046d", ENV{ID_MODEL_ID}=="c52[9b]", ATTRS{name}=="Logitech USB Receiver", RUN+="keymap $name logitech-wave-pro-cordless"
+ 
+@@ -45,8 +46,13 @@
+ 
+ ENV{DMI_VENDOR}=="LENOVO*", KERNELS=="input*", ATTRS{name}=="ThinkPad Extra Buttons", RUN+="keymap $name module-lenovo"
+ ENV{DMI_VENDOR}=="LENOVO*", KERNELS=="input*", ATTRS{name}=="Lenovo ThinkPad SL Series extra buttons", RUN+="keymap $name 0x0E bluetooth"
++ENV{DMI_VENDOR}=="LENOVO*", KERNELS=="input*", ATTRS{name}=="Ideapad extra buttons", RUN+="keymap $name 0x42 f23 0x43 f22"
+ 
+ ENV{DMI_VENDOR}=="ASUS*", KERNELS=="input*", ATTRS{name}=="Asus Extra Buttons", ATTR{[dmi/id]product_name}=="W3J", RUN+="keymap $name module-asus-w3j"
++ENV{DMI_VENDOR}=="ASUS*", KERNELS=="input*", ATTRS{name}=="Asus Laptop extra buttons", RUN+="keymap $name 0x6B f21"
++ENV{DMI_VENDOR}=="ASUS*", KERNELS=="input*", ATTRS{name}=="Asus Laptop Support", RUN+="keymap $name 0x6B f21"
++ENV{DMI_VENDOR}=="ASUS*", KERNELS=="input*", ATTRS{name}=="Asus WMI hotkeys", RUN+="keymap $name 0x6B f21"
++ENV{DMI_VENDOR}=="ASUS*", KERNELS=="input*", ATTRS{name}=="Asus Notebooks WMI Hotkey Driver", RUN+="keymap $name 0x6B f21"
+ ENV{DMI_VENDOR}=="ASUS*", KERNELS=="input*", ATTRS{name}=="Eee PC WMI hotkeys|Asus Laptop Support|Asus*WMI*", RUN+="keymap $name 0x6B f21"
+ ENV{DMI_VENDOR}=="ASUS*", KERNELS=="input*", ATTRS{name}=="Eee PC Hotkey Driver", RUN+="keymap $name 0x37 f21"
+ 
+@@ -58,8 +64,9 @@
+ # Older Vaios have some different keys
+ ENV{DMI_VENDOR}=="Sony*", ATTR{[dmi/id]product_name}=="*PCG-C1*|*PCG-K25*|*PCG-F1*|*PCG-F2*|*PCG-F3*|*PCG-F4*|*PCG-F5*|*PCG-F6*|*PCG-FX*|*PCG-FRV*|*PCG-GR*|*PCG-TR*|*PCG-NV*|*PCG-Z*|*VGN-S360*", ATTRS{name}=="Sony Vaio Keys", RUN+="keymap $name module-sony-old"
+ 
+-# Some Sony VGN models have yet another one
++# Some Sony VGN/VPC models have yet another one
+ ENV{DMI_VENDOR}=="Sony*", ATTR{[dmi/id]product_name}=="VGN-AR71*|VGN-FW*|VGN-Z21*", ATTRS{name}=="Sony Vaio Keys", RUN+="keymap $name module-sony-vgn"
++ENV{DMI_VENDOR}=="Sony*", ATTR{[dmi/id]product_name}=="VPC*", ATTRS{name}=="Sony Vaio Keys", RUN+="keymap $name module-sony-vpc"
+ 
+ 
+ #
+@@ -79,20 +86,28 @@
+ 
+ ENV{DMI_VENDOR}=="LENOVO*", ATTR{[dmi/id]product_version}=="*3000*", RUN+="keymap $name lenovo-3000"
+ ENV{DMI_VENDOR}=="LENOVO*", ATTR{[dmi/id]product_version}=="ThinkPad X6*", ATTR{[dmi/id]product_version}=="* Tablet", RUN+="keymap $name lenovo-thinkpad_x6_tablet"
+-ENV{DMI_VENDOR}=="LENOVO*", ATTR{[dmi/id]product_version}=="ThinkPad X20* Tablet*", ATTR{[dmi/id]product_version}=="* Tablet", RUN+="keymap $name lenovo-thinkpad_x200_tablet"
++ENV{DMI_VENDOR}=="LENOVO*", ATTR{[dmi/id]product_version}=="ThinkPad X2* Tablet*", ATTR{[dmi/id]product_version}=="* Tablet", RUN+="keymap $name lenovo-thinkpad_x200_tablet"
+ ENV{DMI_VENDOR}=="LENOVO*", ATTR{[dmi/id]product_version}=="*IdeaPad*", RUN+="keymap $name lenovo-ideapad"
+ ENV{DMI_VENDOR}=="LENOVO*", ATTR{[dmi/id]product_name}=="S10-*", RUN+="keymap $name lenovo-ideapad"
+ ENV{DMI_VENDOR}=="LENOVO", ATTR{[dmi/id]product_version}=="*IdeaPad Y550*", RUN+="keymap $name 0x95 media 0xA3 play"
++ENV{DMI_VENDOR}=="LENOVO", ATTR{[dmi/id]product_version}=="*Lenovo V480*", RUN+="keymap $name 0xf1 f21"
++# 0xf1 is touchpad toggle, 0xCE is microphone mute in Lenovo U300s
++ENV{DMI_VENDOR}=="LENOVO", ATTR{[dmi/id]product_version}=="*IdeaPad U300s*", RUN+="keymap $name 0xf1 f21 0xCE f20"
+ 
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", RUN+="keymap $name hewlett-packard"
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*[tT][aA][bB][lL][eE][tT]*", RUN+="keymap $name hewlett-packard-tablet"
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*[pP][aA][vV][iI][lL][iI][oO][nN]*", RUN+="keymap $name hewlett-packard-pavilion"
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*Compaq*|*EliteBook*|*2230s*", RUN+="keymap $name hewlett-packard-compaq_elitebook"
++ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*Presario*CQ*", RUN+="keymap $name 0xD8 f21 0xD9 f21"
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*2510p*|*2530p*|HP G60 Notebook PC", RUN+="keymap $name hewlett-packard-2510p_2530p"
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*[tT][xX]2*", RUN+="keymap $name hewlett-packard-tx2"
+ ENV{DMI_VENDOR}=="Hewlett-Packard", ATTR{[dmi/id]product_name}=="Presario 2100*", RUN+="keymap $name hewlett-packard-presario-2100"
+ ENV{DMI_VENDOR}=="Hewlett-Packard", ATTR{[dmi/id]product_name}=="HP G62 Notebook PC", RUN+="keymap $name 0xB2 www"
+-# HP Pavillion dv6315ea has empty DMI_VENDOR
++ENV{DMI_VENDOR}=="Hewlett-Packard", ATTR{[dmi/id]product_name}=="HP ProBook*", RUN+="keymap $name 0xF8 rfkill 0xB2 www"
++ENV{DMI_VENDOR}=="Hewlett-Packard", ATTR{[dmi/id]product_name}=="HP EliteBook 8440p", RUN+="keymap $name hewlett-packard_elitebook-8440p"
++ENV{DMI_VENDOR}=="Hewlett-Packard", ATTR{[dmi/id]product_name}=="HP EliteBook 8460p", RUN+="keymap $name hewlett-packard_elitebook-8460p"
++ENV{DMI_VENDOR}=="Hewlett-Packard", ATTR{[dmi/id]product_name}=="HDX9494NR", RUN+="keymap $name hewlett-packard-hdx9494nr"
++# HP Pavilion dv6315ea has empty DMI_VENDOR
+ ATTR{[dmi/id]board_vendor}=="Quanta", ATTR{[dmi/id]board_name}=="30B7", ATTR{[dmi/id]board_version}=="65.2B", RUN+="keymap $name 0x88 media" # "quick play
+ 
+ # Gateway clone of Acer Aspire One AOA110/AOA150
+@@ -120,6 +135,7 @@
+ ENV{DMI_VENDOR}=="FUJITSU*", ATTR{[dmi/id]product_name}=="*Amilo Si 1520*", RUN+="keymap $name fujitsu-amilo_si_1520"
+ ENV{DMI_VENDOR}=="FUJITSU*", ATTR{[dmi/id]product_name}=="AMILO*M*", RUN+="keymap $name 0x97 prog2 0x9F prog1"
+ ENV{DMI_VENDOR}=="FUJITSU*", ATTR{[dmi/id]product_name}=="Amilo Li 1718", RUN+="keymap $name 0xD6 wlan"
++ENV{DMI_VENDOR}=="FUJITSU*", ATTR{[dmi/id]product_name}=="AMILO Li 2732", RUN+="keymap $name fujitsu-amilo_li_2732"
+ 
+ ENV{DMI_VENDOR}=="LG*", ATTR{[dmi/id]product_name}=="*X110*", RUN+="keymap $name lg-x110"
+ 
+@@ -127,12 +143,16 @@
+ ENV{DMI_VENDOR}=="MEDIONNB", ATTR{[dmi/id]product_name}=="A555*", RUN+="keymap $name medionnb-a555"
+ 
+ ENV{DMI_VENDOR}=="MICRO-STAR*|Micro-Star*", RUN+="keymap $name micro-star"
++ENV{DMI_VENDOR}=="MICRO-STAR*|Micro-Star*", ATTR{[dmi/id]product_name}=="GE60*|GE70*", RUN+="keymap $name 0xC2 ejectcd"
+ 
+ # some MSI models generate ACPI/input events on the LNXVIDEO input devices,
+ # plus some extra synthesized ones on atkbd as an echo of actually changing the
+ # brightness; so ignore those atkbd ones, to avoid loops
+ ENV{DMI_VENDOR}=="MICRO-STAR*", ATTR{[dmi/id]product_name}=="*U-100*|*U100*|*N033", RUN+="keymap $name 0xF7 reserved 0xF8 reserved"
+ 
++# MSI Wind U90/U100 generates separate touchpad on/off keycodes so ignore touchpad toggle keycode
++ENV{DMI_VENDOR}=="MICRO-STAR*", ATTR{[dmi/id]product_name}=="U90/U100", RUN+="keymap $name 0xE4 reserved"
++
+ ENV{DMI_VENDOR}=="INVENTEC", ATTR{[dmi/id]product_name}=="SYMPHONY 6.0/7.0", RUN+="keymap $name inventec-symphony_6.0_7.0"
+ 
+ ENV{DMI_VENDOR}=="MAXDATA", ATTR{[dmi/id]product_name}=="Pro 7000*", RUN+="keymap $name maxdata-pro_7000"
+@@ -140,6 +160,9 @@
+ ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", RUN+="keymap $name samsung-other"
+ ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", ATTR{[dmi/id]product_name}=="*SX20S*", RUN+="keymap $name samsung-sx20s"
+ ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", ATTR{[dmi/id]product_name}=="SQ1US", RUN+="keymap $name samsung-sq1us"
++ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", ATTR{[dmi/id]product_name}=="*700Z*", RUN+="keymap $name 0xBA ejectcd 0x96 keyboardbrightnessup 0x97 keyboardbrightnessdown"
++ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", ATTR{[dmi/id]product_name}=="*700T*", RUN+="keymap $name 0xAD leftmeta"
++ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", ATTR{[dmi/id]product_name}=="*90X3A*|*900X3*|*900X4*|*900XC3*", RUN+="keymap $name samsung-series-9"
+ 
+ ENV{DMI_VENDOR}=="TOSHIBA", ATTR{[dmi/id]product_name}=="SATELLITE A100", RUN+="keymap $name toshiba-satellite_a100"
+ ENV{DMI_VENDOR}=="TOSHIBA", ATTR{[dmi/id]product_name}=="Satellite A110", RUN+="keymap $name toshiba-satellite_a110"
+@@ -161,4 +184,6 @@
+ 
+ ENV{DMI_VENDOR}=="OLPC", ATTR{[dmi/id]product_name}=="XO", RUN+="keymap $name olpc-xo"
+ 
++ENV{DMI_VENDOR}=="Alienware*", ATTR{[dmi/id]product_name}=="M14xR1", RUN+="keymap $name 0x8A ejectcd"
++
+ LABEL="keyboard_end"
+Index: udev-175/extras/keymap/findkeyboards
+===================================================================
+--- udev-175.orig/extras/keymap/findkeyboards	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/findkeyboards	2013-06-24 12:19:01.847849038 +0200
+@@ -16,54 +16,53 @@
+ 
+ # returns OK if $1 contains $2
+ strstr() {
+-    [ "${1#*$2*}" != "$1" ]
++        [ "${1#*$2*}" != "$1" ]
+ }
+ 
+ # returns OK if $1 contains $2 at the beginning
+ str_starts() {
+-    [ "${1#$2*}" != "$1" ]
++        [ "${1#$2*}" != "$1" ]
+ }
+ 
+ str_line_starts() {
+-    while read a; do str_starts "$a" "$1" && return 0;done
+-    return 1;
++        while read a; do str_starts "$a" "$1" && return 0;done
++        return 1;
+ }
+ 
+ # print a list of input devices which are keyboard-like
+ keyboard_devices() {
+-    # standard AT keyboard
+-    for dev in `udevadm trigger --dry-run --verbose --property-match=ID_INPUT_KEYBOARD=1`; do
+-        walk=`udevadm info --attribute-walk --path=$dev`
+-        env=`udevadm info --query=env --path=$dev`
+-        # filter out non-event devices, such as the parent input devices which
+-        # have no devnode
+-        if ! echo "$env" | str_line_starts 'DEVNAME='; then
+-            continue
+-        fi
+-        if strstr "$walk" 'DRIVERS=="atkbd"'; then
+-            echo -n 'AT keyboard: '
+-        elif echo "$env" | str_line_starts 'ID_USB_DRIVER=usbhid'; then
+-            echo -n 'USB keyboard: '
+-        else
+-            echo -n 'Unknown type: '
+-        fi
+-        udevadm info --query=name --path=$dev
+-    done
+-
+-    # modules
+-    module=$(udevadm trigger --verbose --dry-run --subsystem-match=input --attr-match=name='*Extra Buttons')
+-    module="$module
+-$(udevadm trigger --verbose --dry-run --subsystem-match=input --attr-match=name='*extra buttons')"
+-    module="$module
+-$(udevadm trigger --verbose --dry-run --subsystem-match=input --attr-match=name='Sony Vaio Keys')"
+-    for m in $module; do
+-        for evdev in $m/event*/dev; do
+-            if [ -e "$evdev" ]; then
+-		echo -n 'module: '
+-		udevadm info --query=name --path=${evdev%%/dev}
+-            fi
+-	done
+-    done
++        # standard AT keyboard
++        for dev in `udevadm trigger --dry-run --verbose --property-match=ID_INPUT_KEYBOARD=1`; do
++                walk=`udevadm info --attribute-walk --path=$dev`
++                env=`udevadm info --query=env --path=$dev`
++                # filter out non-event devices, such as the parent input devices which have no devnode
++                if ! echo "$env" | str_line_starts 'DEVNAME='; then
++                        continue
++                fi
++                if strstr "$walk" 'DRIVERS=="atkbd"'; then
++                        echo -n 'AT keyboard: '
++                elif echo "$env" | str_line_starts 'ID_USB_DRIVER=usbhid'; then
++                        echo -n 'USB keyboard: '
++                else
++                        echo -n 'Unknown type: '
++               fi
++                       udevadm info --query=name --path=$dev
++        done
++
++        # modules
++        module=$(udevadm trigger --verbose --dry-run --subsystem-match=input --attr-match=name='*Extra Buttons')
++        module="$module
++        $(udevadm trigger --verbose --dry-run --subsystem-match=input --attr-match=name='*extra buttons')"
++        module="$module
++        $(udevadm trigger --verbose --dry-run --subsystem-match=input --attr-match=name='Sony Vaio Keys')"
++        for m in $module; do
++                for evdev in $m/event*/dev; do
++                        if [ -e "$evdev" ]; then
++                                echo -n 'module: '
++                                udevadm info --query=name --path=${evdev%%/dev}
++                        fi
++                done
++        done
+ }
+ 
+ keyboard_devices
+Index: udev-175/extras/keymap/keymaps/acer-aspire_5720
+===================================================================
+--- udev-175.orig/extras/keymap/keymaps/acer-aspire_5720	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/keymaps/acer-aspire_5720	2013-06-24 12:20:38.535853717 +0200
+@@ -1,5 +1,5 @@
+ 0x84 bluetooth  # sent when bluetooth module missing, and key pressed
+-0x92 media	# acer arcade
++0x92 media      # acer arcade
+ 0xD4 bluetooth  # bluetooth on
+ 0xD9 bluetooth  # bluetooth off
+-
++0xF4 prog3      # e-key
+Index: udev-175/extras/keymap/keymaps/acer-aspire_8930
+===================================================================
+--- udev-175.orig/extras/keymap/keymaps/acer-aspire_8930	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/keymaps/acer-aspire_8930	2013-06-24 12:19:01.847849038 +0200
+@@ -3,4 +3,3 @@
+ 0x89 fastforward
+ 0x92 media        # key 'ARCADE' on cine dash media console
+ 0x9E back
+-
+Index: udev-175/extras/keymap/keymaps/fujitsu-amilo_li_2732
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/fujitsu-amilo_li_2732	2013-06-24 12:19:01.847849038 +0200
+@@ -0,0 +1,3 @@
++0xD9 brightnessdown # Fn+F8 brightness down
++0xEF brightnessup # Fn+F9 brightness up
++0xA9 switchvideomode # Fn+F10 Cycle between available video outputs
+Index: udev-175/extras/keymap/keymaps/lenovo-ideapad
+===================================================================
+--- udev-175.orig/extras/keymap/keymaps/lenovo-ideapad	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/keymaps/lenovo-ideapad	2013-06-24 12:19:01.847849038 +0200
+@@ -1,7 +1,8 @@
+ # Key codes observed on S10-3, assumed valid on other IdeaPad models
+-0x81 rfkill			# does nothing in BIOS
+-0x83 display_off		# BIOS toggles screen state
+-0xB9 brightnessup		# does nothing in BIOS
+-0xBA brightnessdown		# does nothing in BIOS
+-0xF1 camera			# BIOS toggles camera power
+-0xf2 unknown			# trackpad enable/disable (does nothing in BIOS)
++0x81 rfkill             # does nothing in BIOS
++0x83 display_off        # BIOS toggles screen state
++0xB9 brightnessup       # does nothing in BIOS
++0xBA brightnessdown     # does nothing in BIOS
++0xF1 camera             # BIOS toggles camera power
++0xf2 f21                # touchpad toggle (key alternately emits f2 and f3)
++0xf3 f21
+Index: udev-175/extras/keymap/keymaps/lenovo-thinkpad-usb-keyboard-trackpoint
+===================================================================
+--- udev-175.orig/extras/keymap/keymaps/lenovo-thinkpad-usb-keyboard-trackpoint	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/keymaps/lenovo-thinkpad-usb-keyboard-trackpoint	2013-06-24 12:20:38.539853717 +0200
+@@ -10,4 +10,4 @@
+ 0x90011 prog1 # Thinkvantage button
+ 
+ 0x90015 camera # Fn+F6 headset/camera VoIP key  ??
+-0x90010 micmute # Microphone mute button 
++0x90010 f20 # Microphone mute button; should be micmute, but see https://mail.gnome.org/archives/commits-list/2013-January/msg05822.html
+Index: udev-175/extras/keymap/keymaps/samsung-sq1us
+===================================================================
+--- udev-175.orig/extras/keymap/keymaps/samsung-sq1us	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/keymaps/samsung-sq1us	2013-06-24 12:19:01.847849038 +0200
+@@ -1,6 +1,6 @@
+ 0xD4 menu
+ 0xD8 f1
+-0xD9 f10 
++0xD9 f10
+ 0xD6 f3
+ 0xD7 f9
+ 0xE4 f5
+Index: udev-175/extras/keymap/keymaps/toshiba-satellite_m30x
+===================================================================
+--- udev-175.orig/extras/keymap/keymaps/toshiba-satellite_m30x	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/keymaps/toshiba-satellite_m30x	2013-06-24 12:19:01.847849038 +0200
+@@ -4,4 +4,3 @@
+ 0x93 media
+ 0x9e f22 #touchpad_enable
+ 0x9f f23 #touchpad_disable
+-
+Index: udev-175/extras/keymap/95-keyboard-force-release.rules
+===================================================================
+--- udev-175.orig/extras/keymap/95-keyboard-force-release.rules	2013-06-24 12:19:01.851849038 +0200
++++ udev-175/extras/keymap/95-keyboard-force-release.rules	2013-06-24 12:24:00.851863508 +0200
+@@ -19,16 +19,20 @@
+ ENV{DMI_VENDOR}="$attr{[dmi/id]sys_vendor}"
+ 
+ ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", RUN+="keyboard-force-release.sh $devpath samsung-other"
++ENV{DMI_VENDOR}=="[sS][aA][mM][sS][uU][nN][gG]*", ATTR{[dmi/id]product_name}=="*90X3A*|*900X3*|*900X4*|*900XC3*", RUN+="keyboard-force-release.sh $devpath samsung-series-9"
+ 
+ ENV{DMI_VENDOR}=="Dell Inc.", ATTR{[dmi/id]product_name}=="Studio 1557|Studio 1558", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+-ENV{DMI_VENDOR}=="Dell Inc.", ATTR{[dmi/id]product_name}=="Latitude E*|Precision M*", RUN+="keyboard-force-release.sh $devpath dell-touchpad"
++ENV{DMI_VENDOR}=="Dell Inc.", ATTR{[dmi/id]product_name}=="*Latitude*|*Precision*", RUN+="keyboard-force-release.sh $devpath dell-touchpad"
++ENV{DMI_VENDOR}=="Dell Inc.", ATTR{[dmi/id]product_name}=="XPS*", RUN+="keyboard-force-release.sh $devpath dell-xps"
+ 
+-ENV{DMI_VENDOR}=="FUJITSU SIEMENS", ATTR{[dmi/id]product_name}=="AMILO Si 1848+u|AMILO Xi 2428", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
++ENV{DMI_VENDOR}=="FUJITSU SIEMENS", ATTR{[dmi/id]product_name}=="AMILO*", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+ 
+ ENV{DMI_VENDOR}=="FOXCONN", ATTR{[dmi/id]product_name}=="QBOOK", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+ 
+ ENV{DMI_VENDOR}=="MTC", ATTR{[dmi/id]product_version}=="A0", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+ 
++ENV{DMI_VENDOR}=="Mio Technology", ATTR{[dmi/id]product_name}=="N890", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
++
+ ENV{DMI_VENDOR}=="PEGATRON CORP.", ATTR{[dmi/id]product_name}=="Spring Peak", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+ 
+ ENV{DMI_VENDOR}=="TOSHIBA", ATTR{[dmi/id]product_name}=="Satellite [uU]300*|Satellite Pro [uU]300*|Satellite [uU]305*|SATELLITE [uU]500*", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+@@ -38,7 +42,7 @@
+ # These are all the HP laptops that setup a touchpad toggle key
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*[pP][aA][vV][iI][lL][iI][oO][nN]*", RUN+="keyboard-force-release.sh $devpath hp-other"
+ ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*[tT][xX]2*", RUN+="keyboard-force-release.sh $devpath hp-other"
+-ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*2510p*|*2530p*|HP G60 Notebook PC", RUN+="keyboard-force-release.sh $devpath hp-other"
++ENV{DMI_VENDOR}=="Hewlett-Packard*", ATTR{[dmi/id]product_name}=="*2510p*|*2530p*|HP G60 Notebook PC|HDX9494NR", RUN+="keyboard-force-release.sh $devpath hp-other"
+ 
+ ENV{DMI_VENDOR}=="Zepto", ATTR{[dmi/id]product_name}=="Znote 6615WD", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+ 
+@@ -48,6 +52,8 @@
+ 
+ ENV{DMI_VENDOR}=="GIGABYTE", ATTR{[dmi/id]product_name}=="i1520M", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+ 
+-ENV{DMI_VENDOR}=="BenQ", ATTR{[dmi/id]product_name}=="*nScreen*", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
++ENV{DMI_VENDOR}=="BenQ", ATTR{[dmi/id]product_name}=="*nScreen*|Joybook Lite*", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
++
++ENV{DMI_VENDOR}=="DIXONSP", ATTR{[dmi/id]product_name}=="DIXON*", RUN+="keyboard-force-release.sh $devpath common-volume-keys"
+ 
+ LABEL="force_release_end"
+Index: udev-175/extras/keymap/force-release-maps/dell-xps
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/force-release-maps/dell-xps	2013-06-24 12:19:01.847849038 +0200
+@@ -0,0 +1 @@
++0x8C
+Index: udev-175/extras/keymap/force-release-maps/samsung-90x3a
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/force-release-maps/samsung-90x3a	2013-06-24 12:19:01.847849038 +0200
+@@ -0,0 +1,6 @@
++# list of scancodes (hex or decimal), optional comment
++0xCE # Fn+F8 keyboard backlit up
++0x8D # Fn+F7 keyboard backlit down
++0x97 # Fn+F12 wifi on/off
++0x96 # Fn+F1 performance mode (?)
++0xD5 # Fn+F6 battery life extender
+Index: udev-175/extras/keymap/keymaps/samsung-90x3a
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/samsung-90x3a	2013-06-24 12:19:01.847849038 +0200
+@@ -0,0 +1,5 @@
++0x96 kbdillumup         # Fn+F8 keyboard backlit up
++0x97 kbdillumdown       # Fn+F7 keyboard backlit down
++0xD5 wlan               # Fn+F12 wifi on/off
++0xCE prog1              # Fn+F1 performance mode
++0x8D prog2              # Fn+F6 battery life extender
+Index: udev-175/extras/keymap/force-release-maps/samsung-series-9
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/force-release-maps/samsung-series-9	2013-06-24 12:21:02.863854894 +0200
+@@ -0,0 +1,6 @@
++# list of scancodes (hex or decimal), optional comment
++0xCE # Fn+F8 keyboard backlit up
++0x8D # Fn+F7 keyboard backlit down
++0x97 # Fn+F12 wifi on/off
++0x96 # Fn+F1 performance mode (?)
++0xD5 # Fn+F6 battery life extender
+Index: udev-175/extras/keymap/keymaps/hewlett-packard-hdx9494nr
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/hewlett-packard-hdx9494nr	2013-06-24 12:20:38.539853717 +0200
+@@ -0,0 +1,3 @@
++0xB2 www # FnF3
++0xD8 f23 # touchpad off
++0xD9 f22 # touchpad on
+Index: udev-175/extras/keymap/keymaps/hewlett-packard_elitebook-8440p
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/hewlett-packard_elitebook-8440p	2013-06-24 12:20:38.539853717 +0200
+@@ -0,0 +1,5 @@
++0x88 www
++0xA0 mute
++0xAE volumedown
++0xB0 volumeup
++0xEC mail
+Index: udev-175/extras/keymap/keymaps/hewlett-packard_elitebook-8460p
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/hewlett-packard_elitebook-8460p	2013-06-24 12:20:38.539853717 +0200
+@@ -0,0 +1,3 @@
++0xF8 wlan # Wireless HW switch button
++0xB3 prog1 # Fn+F11 - Ambient Light Sensor button
++0xB1 prog2 # Fn+ESC - System information button
+Index: udev-175/extras/keymap/keymaps/logitech-usb
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/logitech-usb	2013-06-24 12:20:38.539853717 +0200
+@@ -0,0 +1,6 @@
++0x90001 shop	# Shopping
++0x90002 config	# iTouch
++0x90003 finance	# Finance
++0x90004 prog1	# My Sites
++0x90005 prog2	# Community
++0xC0183 media	# Media
+Index: udev-175/extras/keymap/keymaps/module-lenovo
+===================================================================
+--- udev-175.orig/extras/keymap/keymaps/module-lenovo	2011-10-31 13:47:10.221742802 +0100
++++ udev-175/extras/keymap/keymaps/module-lenovo	2013-06-24 12:20:38.539853717 +0200
+@@ -14,4 +14,4 @@
+ 0x15 volumedown
+ 0x16 mute
+ 0x17 prog1 # ThinkPad/ThinkVantage button (high keycode: "vendor")
+-0x1A micmute # Microphone mute
++0x1A f20 # Microphone mute button; should be micmute, but see https://mail.gnome.org/archives/commits-list/2013-January/msg05822.html
+Index: udev-175/extras/keymap/keymaps/module-sony-vpc
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/module-sony-vpc	2013-06-24 12:20:38.539853717 +0200
+@@ -0,0 +1,4 @@
++# 0x05 touchpad_toggle # fn_f1 -> KEY_TOUCHPAD_TOGGLE
++0x05 f21 # fn_f1 -> KEY_F21 (The actual touchpad toggle)
++0x0d zoomout # fn_f9
++0x0e zoomin # fn_f10
+Index: udev-175/extras/keymap/keymaps/samsung-series-9
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ udev-175/extras/keymap/keymaps/samsung-series-9	2013-06-24 12:20:38.543853717 +0200
+@@ -0,0 +1,5 @@
++0x96 kbdillumup         # Fn+F8 keyboard backlit up
++0x97 kbdillumdown       # Fn+F7 keyboard backlit down
++0xD5 wlan               # Fn+F12 wifi on/off
++0xCE prog1              # Fn+F1 performance mode
++0x8D prog2              # Fn+F6 battery life extender

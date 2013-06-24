@@ -1,0 +1,16 @@
+Description: Load the fbcon driver when a framebuffer is created.
+Author: Scott James Remnant <scott@ubuntu.com>
+Bug-Ubuntu: https://launchpad.net/bugs/392039
+Bug-Ubuntu: https://launchpad.net/bugs/431812
+
+Index: precise/rules/rules.d/80-drivers.rules
+===================================================================
+--- precise.orig/rules/rules.d/80-drivers.rules	2011-11-08 09:07:29.901619000 +0100
++++ precise/rules/rules.d/80-drivers.rules	2011-11-08 09:07:33.746184516 +0100
+@@ -8,5 +8,6 @@
+ SUBSYSTEM=="memstick", RUN+="/sbin/modprobe -bv --all ms_block mspro_block"
+ SUBSYSTEM=="i2o", RUN+="/sbin/modprobe -bv i2o_block"
+ SUBSYSTEM=="module", KERNEL=="parport_pc", RUN+="/sbin/modprobe -bv ppdev"
++SUBSYSTEM=="graphics", RUN+="/sbin/modprobe -q fbcon"
+ 
+ LABEL="drivers_end"

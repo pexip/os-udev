@@ -1,0 +1,14 @@
+Description: Revert the usage of SOCK_NONBLOCK in udev_monitor_new_from_netlink_fd(). This causes boot failures (stuck in initramfs) for a lot of people. This reverts upstream commit 13d83b88b6.
+
+--- a/libudev/libudev-monitor.c	2011-06-27 22:17:55 +0000
++++ b/libudev/libudev-monitor.c	2011-07-11 08:42:26 +0000
+@@ -183,7 +183,7 @@
+ 		return NULL;
+ 
+ 	if (fd < 0) {
+-		udev_monitor->sock = socket(PF_NETLINK, SOCK_RAW|SOCK_CLOEXEC|SOCK_NONBLOCK, NETLINK_KOBJECT_UEVENT);
++		udev_monitor->sock = socket(PF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, NETLINK_KOBJECT_UEVENT);
+ 		if (udev_monitor->sock == -1) {
+ 			err(udev, "error getting socket: %m\n");
+ 			free(udev_monitor);
+

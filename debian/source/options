@@ -1,0 +1,4 @@
+tar-ignore .bzr
+tar-ignore .git
+tar-ignore test
+diff-ignore '(^|/)(.bzr|.gitignore|test)($$|/)|docs/.*\.types'

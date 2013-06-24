@@ -1,0 +1,10 @@
+/sbin
+/lib/firmware
+/lib/udev
+/lib/udev/rules.d
+/etc/udev/rules.d
+/usr/lib/udev
+/usr/share/initramfs-tools/hooks
+/usr/share/initramfs-tools/scripts/init-top
+/usr/share/initramfs-tools/scripts/nfs-top
+/usr/share/initramfs-tools/scripts/init-bottom

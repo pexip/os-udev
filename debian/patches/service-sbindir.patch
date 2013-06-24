@@ -1,0 +1,12 @@
+Description: Fix executable path in .service file. (Already fixed upstream)
+
+Index: precise/init/udev.service.in
+===================================================================
+--- precise.orig/init/udev.service.in	2011-10-12 01:51:14.839624247 +0200
++++ precise/init/udev.service.in	2012-03-29 16:20:26.938117323 +0200
+@@ -11,4 +11,4 @@
+ OOMScoreAdjust=-1000
+ Sockets=udev-control.socket udev-kernel.socket
+ Restart=on-failure
+-ExecStart=@libexecdir@/udevd
++ExecStart=@sbindir@/udevd

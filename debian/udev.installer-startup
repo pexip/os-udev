@@ -1,0 +1,19 @@
+#!/bin/sh -e
+# installer startup script for udev
+
+# We have a /init, so the kernel won't mount devtmpfs automatically
+mount -t devtmpfs devtmpfs /dev
+
+# It's all over netlink now
+echo "" > /proc/sys/kernel/hotplug
+
+# Start udevd
+udevd --daemon --resolve-names=never
+
+# Create all device nodes, and fix up permissions and missing stuff for
+# those already created (by initramfs)
+/sbin/udevadm trigger --action=add
+/sbin/udevadm settle
+
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts

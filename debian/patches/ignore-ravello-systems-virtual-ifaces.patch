@@ -1,0 +1,13 @@
+Index: precise/extras/rule_generator/75-persistent-net-generator.rules
+===================================================================
+--- precise.orig/extras/rule_generator/75-persistent-net-generator.rules	2013-01-14 16:20:22.000000000 -0800
++++ precise/extras/rule_generator/75-persistent-net-generator.rules	2013-01-14 16:21:56.000000000 -0800
+@@ -37,6 +37,8 @@
+ ENV{MATCHADDR}=="00:15:5d:*", GOTO="persistent_net_generator_end"
+ # ignore Eucalyptus virtual interfaces
+ ENV{MATCHADDR}=="d0:0d:*", GOTO="persistent_net_generator_end"
++# ignore Ravello Systems virtual interfaces
++ENV{MATCHADDR}=="2c:c2:60:*", GOTO="persistent_net_generator_end"
+ 
+ # These vendors are known to violate the local MAC address assignment scheme
+ # Interlan, DEC (UNIBUS or QBUS), Apollo, Cisco, Racal-Datacom

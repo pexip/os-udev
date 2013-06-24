@@ -1,0 +1,8 @@
+Building this from revision control is not quite straight-forward,
+sorry.
+
+First you need a tarball, hopefully you can get that from the archive,
+if not "debian/rules tarball" will make it.
+
+Next you need to make a source package from that.  "debian/rules package"
+will do that.

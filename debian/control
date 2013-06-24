@@ -1,0 +1,132 @@
+Source: udev
+Section: admin
+Priority: important
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 8.1.2ubuntu2),
+ dh-autoreconf,
+ pkg-config,
+ libselinux1-dev (>= 1.28),
+ libsepol1-dev,
+ libglib2.0-dev (>= 2.12.0),
+ libusb-dev (>= 1:0.1.12),
+ libacl1-dev,
+ gobject-introspection,
+ libgirepository1.0-dev,
+ gir1.2-glib-2.0,
+ usbutils (>= 0.82),
+ pciutils,
+ xsltproc,
+ docbook-xsl,
+ gtk-doc-tools,
+ gperf,
+ gawk
+Vcs-Bzr: https://code.launchpad.net/~ubuntu-core-dev/ubuntu/precise/udev/ubuntu
+Homepage: http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html
+
+Package: udev
+Architecture: any
+Depends: ${shlibs:Depends}, 
+ ${misc:Depends}, 
+ libudev0 (>= ${source:Upstream-Version}),
+ module-init-tools (>= 3.2.1-0ubuntu3), 
+ initramfs-tools (>= 0.92bubuntu63),
+ procps, 
+ adduser,
+ util-linux (>> 2.15~rc2),
+ upstart (>= 1.4-0ubuntu6)
+Suggests: watershed
+Multi-Arch: foreign
+Description: rule-based device node and kernel event manager
+ udev is a collection of tools and a daemon to manage events received from
+ the kernel and deal with them in user-space.  Primarily this involves
+ creating and removing device nodes in /dev when hardware is discovered or
+ removed from the system.
+ .
+ Events are received via kernel netlink messaged and processed according to
+ rules in /etc/udev/rules.d and /lib/udev/rules.d, altering the name of the
+ device node, creating additional symlinks or calling other tools and programs
+ including those to load kernel modules and initialise the device.
+
+Package: udev-udeb
+XC-Package-Type: udeb
+Section: debian-installer
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: rule-based device node and kernel event manager
+
+Package: libudev0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Description: udev library
+ libudev provides a set of functions for accessing the udev database
+ and querying sysfs.
+
+Package: libudev-dev
+Priority: optional
+Section: libdevel
+Architecture: any
+Depends: libudev0 (= ${binary:Version}),
+ ${shlibs:Depends},
+ ${misc:Depends}
+Description: udev library (development files)
+ libudev provides a set of functions for accessing the udev database
+ and querying sysfs.
+ .
+ This package provides a static library and C header files.
+
+Package: libudev0-udeb
+XC-Package-Type: udeb
+Section: debian-installer
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: udev library
+
+Package: libgudev-1.0-0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Description: GObject-based wrapper library for libudev
+ This library makes it much simpler to use libudev from programs already using
+ GObject. It also makes it possible to easily use libudev from other
+ programming languages, such as Javascript, because of GObject introspection
+ support.
+ .
+ This package contains the shared libraries.
+
+Package: libgudev-1.0-dev
+Section: libdevel
+Architecture: any
+Depends: libgudev-1.0-0 (= ${binary:Version}),
+ libudev-dev,
+ libglib2.0-dev,
+ pkg-config,
+ gir1.2-gudev-1.0,
+ ${shlibs:Depends},
+ ${misc:Depends}
+Description: GObject-based wrapper library for libudev -- development files
+ This library makes it much simpler to use libudev from programs already using
+ GObject. It also makes it possible to easily use libudev from other
+ programming languages, such as Javascript, because of GObject introspection
+ support.
+ .
+ This package contains the header and pkgconfig files needed for developing
+ applications that use libgudev1.0.
+
+Package: gir1.2-gudev-1.0
+Section: libs
+Priority: optional
+Architecture: any
+Depends: ${shlibs:Depends},
+ ${misc:Depends},
+ ${gir:Depends},
+ libglib2.0-0
+Conflicts: gir1.0-gudev-1.0
+Replaces: gir1.0-gudev-1.0
+Description: libgudev-1.0 introspection data
+ This package contains the GObject-introspection data of libgudev-1.0 in
+ binary typelib format.

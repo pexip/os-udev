@@ -1,0 +1,3833 @@
+udev (175-0ubuntu9.4) precise-proposed; urgency=low
+
+  * 00git-keymaps.patch: Update to the latest keymaps from upstream, as per
+    SRU exception. Amongst lots of other models, this fixes the Touchpad key
+    on Dell Latitude 6430U and 3330 (LP: #1193147)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 24 Jun 2013 12:28:18 +0200
+
+udev (175-0ubuntu9.3) precise-proposed; urgency=low
+
+  * Add ignore-ravello-systems-virtual-ifaces.patch: Do not create persistent
+    net rules for Ravello Systems MAC addresses.  Thanks to Boris Figovsky for
+    the patch.  (LP: #1099278)
+
+ -- Brian Murray <brian@ubuntu.com>  Mon, 14 Jan 2013 16:22:22 -0800
+
+udev (175-0ubuntu9.2) precise-proposed; urgency=low
+
+  * Add persistent-input-symlinks-iface00.patch: Fix persistent input symlinks
+    for interface 00. Thanks to a7x for pointing this out! (LP: #1057824)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 11 Oct 2012 09:17:05 +0200
+
+udev (175-0ubuntu9.1) precise-proposed; urgency=low
+
+  [ Herton Ronaldo Krzesinski ]
+  * Refresh debian/patches/avoid-exit-deadlock-for-dm_cookie.patch:
+    avoid serialization issues in handling of events with DM_COOKIE
+    set (LP: #1017715).
+
+  [ Eric Miao ]
+  * fix-race-condition-of-serio-driver-module-not-loading.patch:
+    Work around race condition in PS/2 keyboard/mouse handling. This resulted
+    in udev sometimes failing to load the psmouse driver, causing touchpads to
+    occasionally not work after boot up. (LP: #1014460)
+
+ -- Herton Ronaldo Krzesinski <herton@ubuntu.com>  Mon, 16 Jul 2012 07:17:56 +0200
+
+udev (175-0ubuntu9) precise; urgency=low
+
+  * debian/udev.udevtrigger.upstart: only start on 'not-container', not on
+    'container', so that we don't have to needlessly execute a shell here
+    in the container case.  We're guaranteed not to deadlock boot because
+    each of the 'startup', 'started udev', and 'container' events will be
+    seen once and only once on a boot.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 04 Apr 2012 21:38:00 -0700
+
+udev (175-0ubuntu8) precise; urgency=low
+
+  * debian/rules, debian/udev.install: Add --with-systemdsystemunitdir and
+    install the systemd files, to not make the boot fall over completely with
+    systemd.
+  * Add service-sbindir.patch: Fix executable path in .service file. (Already
+    fixed upstream)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 29 Mar 2012 18:52:42 +0200
+
+udev (175-0ubuntu7) precise; urgency=low
+
+  * builtin-block-polling.patch: Fix default attribute comparison for CD
+    drives, the default value of events_poll_msecs is -1, not 0. This really
+    makes in-kernel polling work for those.
+  * builtin-block-polling.patch: Apply to all drives with removable media, not
+    just CD drives. (LP: #948663)
+  * 00git-keymaps.patch: Update to the latest keymaps from upstream:
+    - Dell XPS (LP: #910911)
+    - HP Presario CQ60 (LP: #935804)
+  * debian/rules: Drop prep and tarball targets. We want to use the upstream
+    released tarballs.
+  * debian/rules: Use dh_autoreconf. Add build dependency.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Wed, 28 Mar 2012 12:23:10 +0200
+
+udev (175-0ubuntu6) precise; urgency=low
+
+  * Add debian/patches/avoid-exit-deadlock-for-dm_cookie.patch,
+    debian/libudev0.symbols: do not exit across a pending DM_COOKIE
+    event to avoid vgchange deadlocks, thanks to Herton R. Krzesinski
+    (LP: #802626).
+
+ -- Kees Cook <kees@ubuntu.com>  Sun, 04 Mar 2012 18:21:15 -0800
+
+udev (175-0ubuntu5) precise; urgency=low
+
+  [ David Henningsson ]
+  * Remove jack-detection.patch: Now that PulseAudio uses the new jack
+    detection interface, we can remove this patch.
+
+  [ Stéphane Graber ]
+  * debian/udev.udevtrigger.upstart: Update to wait for 'container' or
+    'not-container' to be emitted, then skip just exit 0 but still run
+    post-stop if it's a container and run 'udevadm trigger' if it's not.
+    This is needed until we have a proper device namespace preventing
+    udev events from affecting the outside.
+    (LP: #925122)
+  * Make udev depend on upstart >= 1.4-0ubuntu6 to ensure the next reboot
+    will indeed either emit container or not-container.
+
+ -- Stéphane Graber <stgraber@ubuntu.com>  Fri, 17 Feb 2012 15:40:47 -0500
+
+udev (175-0ubuntu4) precise; urgency=low
+
+  * Add builtin-block-polling.patch: Set default polling interval on CD drives
+    as well. The events_dfl_poll_msecs will not trigger if "block" is not a
+    module, but built in. This will avoid udisks etc. having to poll from
+    userspace, and provide proper ejection when the hardware eject button is
+    pressed. (LP: #890592)
+  * Add 00git-keymaps.patch: Backport keymaps from current git master.
+    (LP: #901513, #902332, #902798, #914838, #922405)
+  * Add 00git-persistent-net-xen.patch: 75-persistent-net-generator.rules: Add
+    Xen. (LP: #897789)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 06 Feb 2012 09:17:28 +0100
+
+udev (175-0ubuntu3) precise; urgency=low
+
+  [ Andy Whitcroft ]
+  * debian/udev.initramfs-bottom: ignore timeout errors from udevadm we
+    expect (and indeed requested) in certain failure modes.  If we do not we
+    will bail out early and not transfer /dev into /root which is always
+    fatal leading to unbootable machines.  (LP: #818177)
+  * avoid-exit-deadlock-for-timely-events: avoid deadlock when exiting
+    by continuing to handle events with timeliness requirements.
+    The timeliness requirement will be violated if we ignore them which
+    is highly undesirable.  Also these events are typically dependant
+    events and may well block the events we are waiting on leading to
+    boot delays and uninitialised devices.  (LP: #842560)
+  * debian/udev.initramfs-bottom: increase the client-side timeout to
+    better cope with potential timeout extension issues in udev.  We very
+    much would prefer udev to time itself out and guarantee to have
+    completed than take action ourselves.  Very worst case the timeout may
+    be doubled from the default of 60s so increase ours accordingly.  Note,
+    we should only ever trip this timeout when we are already in severe
+    trouble.  (LP: #818177)
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Fri, 16 Dec 2011 11:15:39 -0800
+
+udev (175-0ubuntu2) precise; urgency=low
+
+  * debian/udev.postinst: Ignore failures of "udevadm --convert-db". This
+    option does not exist any more in Ubuntu 11.10 and later, so for upgrades
+    from 10.04 LTS to 12.04 LTS you need to reboot. This doesn't really hurt,
+    as there are already two dozen other reasons to reboot after upgrade.
+    (LP: #887892)
+  * Partially revert r2735 and move the daemon back to /sbin/, to better
+    comply with FHS.
+  * debian/udev.postinst: Use invoke-rc.d to restart udev instead of
+    "restart", to pick up new daemon path. (LP: #889226)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 15 Nov 2011 08:14:03 +0100
+
+udev (175-0ubuntu1) precise; urgency=low
+
+  [ Loïc Minier ]
+  * Update Vcs fields for precise.
+
+  [ Steve Langasek ]
+  * debian/udev.initramfs-hook: we aren't using pkill anymore, so don't put
+    it in the initramfs.
+
+  [ Martin Pitt ]
+  * Unapply patches, they are not meant to be applied in the bzr branch.
+  * New upstream releases 174 and 175:
+    - Daemon moved to /lib/udev/udevd
+    - path_id, usb_id, input_id tools are built-in commands now
+    - fusectl filesystem is no longer mounted directly from udev
+    - The long deprecated keys: SYSFS=, ID=, BUS= have been removed
+    - The udev control socket is now created in /run/udev/control
+    - The rules to create persistent network interface and cdrom link
+      rules automatically in /etc/udev/rules.d/ have been disabled by
+      default.
+    - Support for 'udevadm trigger --type=failed, and the
+      RUN{fail_event_on_error} attribute was removed.
+    - Various keymap fixes (LP: #606599, #637695, #696671, #763525, #770680,
+      LP: #795694)
+    - Unbreak findkeyboards (LP: #881158)
+    - Lots of bug fixes.
+  * debian/rules: Explicitly enable persistent net/cdrom rule generator by
+    default. Upstream default changed, but this seems too much a change for
+    12.04 LTS.
+  * Drop move-input_id-to-default-rules.patch, race-condition-on-exit: Applied
+    upstream.
+  * jack-detection.patch: Port to new upstream version.
+  * load-fbcon.patch, use_run_tmpfs: Unfuzz.
+  * debian/udev.install, debian/udev-udeb.install, debian/udev.initramfs-hook,
+    debian/udev.initramfs-top, debian/udev.installer-startup,
+    debian/udev.udev-finish.init, debian/udev.upstart: Update to changed
+    location of udevd (/sbin → /lib/udev) and the three now builtin _id
+    helpers.
+  * debian/libudev0.symbols: Add new symbol from this release.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 10 Nov 2011 08:49:07 +0100
+
+udev (173-0ubuntu5) precise; urgency=low
+
+  * Cross-build fixes based of patch by Colin Watson; LP: #873584.
+    - Build deb and udeb flavors with
+      --with-pci-ids-path=/usr/share/misc/pci.ids as this is required when
+      cross-compiling but can safely be passed all the time.
+    - Disable gtk-doc build when cross-compiling and exclude doc files when
+      calling dh_install; building gtk-doc requires running a generated source
+      (lt-gudev-scan) which is usually not possible when cross-compiling;
+      should really be fixed to build this scanner with BUILD_CC instead, but
+      this would require building whole projects twice too.
+    - Also disable GObject introspection and exclude these files for the same
+      reason as for gtk-doc (needs to run a scanner program which can't be run
+      when cross-compiling).
+
+ -- Loïc Minier <loic.minier@linaro.org>  Wed, 19 Oct 2011 17:57:57 +0200
+
+udev (173-0ubuntu4) oneiric; urgency=low
+
+  * Set a timeout of 61 seconds when calling udevadm control --exit, to
+    ensure that udevd always reaches its *own* timeout first.  If udevadm
+    times out before udevd, it exits non-zero, breaking the move of the /dev
+    mount; and if we ignore the udevadm failure then udevd might still be
+    running, which is the original issue that the patch for bug #624469
+    was trying to address.  Raising the timeout doesn't make the boot any
+    slower, it just makes sure we let udevd count the 60 seconds instead of
+    udevadm.  LP: #818177.
+  * debian/patches/race-condition-on-exit: Process events before signals
+    in the worker thread, so we don't sit around waiting 60 seconds for an
+    already-dead process.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sat, 08 Oct 2011 00:48:54 -0700
+
+udev (173-0ubuntu3) oneiric; urgency=low
+
+  * Include input_id in the initramfs to prevent errors when enumerating
+    devices in early init (LP: #831516).
+
+ -- Andy Whitcroft <apw@canonical.com>  Tue, 23 Aug 2011 06:58:23 +0200
+
+udev (173-0ubuntu2) oneiric; urgency=low
+
+  * Add debian/patches/move-input_id-to-default-rules.patch: Fix bluetooth
+    mice and keyboards in the X server. Patch cherry-picked from upstream.
+    (LP: #827489)
+
+ -- Felix Geyer <debfx-pkg@fobos.de>  Tue, 16 Aug 2011 18:00:41 +0200
+
+udev (173-0ubuntu1) oneiric; urgency=low
+
+  [ Martin Pitt ]
+  * New upstream bug fix release.
+  * debian/rules: Configure with --enable-udev_acl, the default changed in
+    this upstream version because of newer systemd versions.
+  * debian/udev.examples: Drop scsi_id.config, this file has been obsolete for
+    a long time.
+
+  [ David Henningsson ]
+  * To enable jack detection in PulseAudio, make jack detection input
+    devices world-readable, just as being done for joysticks (LP: #826662).
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 15 Aug 2011 13:02:20 +0200
+
+udev (172-0ubuntu5) oneiric; urgency=low
+
+  * The kernel won't mount devtmpfs automatically when /init exists, which
+    is always the case in the installer, so mount it manually (LP: #817443).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Thu, 28 Jul 2011 15:37:48 +0100
+
+udev (172-0ubuntu4) oneiric; urgency=low
+
+  * debian/udev.installer-startup: Create /dev/pts before mounting it
+    (LP: #815962).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 25 Jul 2011 16:53:47 +0100
+
+udev (172-0ubuntu3) oneiric; urgency=low
+
+  * debian/udev-udeb.dirs, debian/udev.dirs, debian/udev.postinst: Get rid of
+    the remaining /lib/udev/devices/ stuff:
+    - shm: will be symlinked to /run/shm/ by mountall, and avoid having a
+      non-world-writable shm (which breaks e. g. ecryptfs)
+    - net: created by devtmpfs already
+    - pts: mounted as devpts by mountall
+  * Drop debian/udev.init. It has a ton of deprecated stuff in it, and with
+    upstream supporting systemd and us having upstart scripts there won't ever
+    be a time when we go back to a sysvinit script.
+  * debian/udev.installer-startup:
+    - Drop copying of /lib/udev/devices/. udevd already does this, and it's
+      obsolete with devtmpfs anyway.
+    - Drop unconditional mounting of a tmpfs on /dev and mknod'ing stuff. We
+      already have a devtmpfs there. Only mount devtmpfs if /dev/null doesn't
+      exist already.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 14 Jul 2011 09:22:40 +0200
+
+udev (172-0ubuntu2) oneiric; urgency=low
+
+  * extras/cdrom_id/60-cdrom_id.rules: Revert "hd*" hack for powerpc; this
+    already is, or should be fixed in the powerpc kernel configuration to use
+    the SCSI interface. (Confirmed by Luke).
+  * Move rules/rules.d/78-graphics-card.rules to
+    debian/local/78-graphics-card.rules and install it in debian/udev.install
+    instead of patching Makefile.am
+  * Move inline change in rules/rules.d/80-drivers.rules to
+    debian/patches/load-fbcon.patch.
+  * Move extras/rule_generator/75-persistent-net-generator.rules inline change
+    to debian/patches/ignore-eucalyptus-virtual-ifaces.patch.
+  * Move libudev/libudev-monitor.c inline change to
+    debian/patches/libudev-revert-SOCK_NONBLOCK.patch.
+  * Revert autoconf files to upstream state, as we have no further direct
+    patches to the upstream build system.
+  * debian/source/format: Move to 3.0 (quilt) format.
+  * Add debian/patches/use_run_tmpfs: Only use /run/ if it is a tmpfs. Stolen
+    from Debian's udev 167-2, thanks Marco d'Itri! (LP: #807306)
+  * debian/control: Update Maintainer: field to Ubuntu Developers.
+  * debian/control: Bump Standards-Version to 3.9.2.
+  * debian/source/options: Ignore *.types files in documentation.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 12 Jul 2011 08:36:12 +0200
+
+udev (172-0ubuntu1) oneiric; urgency=low
+
+  * New upstream release:
+    - Now enables kenrel media polling if available. This goes together with
+      the changes in udisks 1.0.3 to stop user-space polling if kernel polling
+      is enabled.
+    - Delete mobile-action-modeswitch, has been deprecated by usb-modeswitch
+      for a long time now.
+  * debian/rules: Fix build tree copying to cope with new upstream
+    "build-aux/" directory.
+  * debian/libudev0.symbols: Add new symbols for this release.
+  * debian/control: Add gir1.2-gudev-1.0 dependency to libgudev-1.0-dev, as
+    per current Debian GI policy.
+  * debian/control: Wrap dependencies.
+  * debian/control: Add versioned libudev0 dependency to udev. While udevd or
+    the probers do not directly link to it (they have an internal copy), they
+    still need to be in sync to work properly. (LP: #804577)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 11 Jul 2011 15:28:25 +0200
+
+udev (171-0ubuntu4) oneiric; urgency=low
+
+  [ Colin Watson ]
+  * Update Vcs-Bzr field.
+
+  [ Aurélien Couderc ]
+  * Use "udevadm control --exit" in the initramfs instead of manually
+    killing each udevd process (borrowed from Debian #624469).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Tue, 28 Jun 2011 17:50:21 +0100
+
+udev (171-0ubuntu3) oneiric; urgency=low
+
+  * Go back to the real 171.
+  * libudev/libudev-monitor.c: Revert the usage of SOCK_NONBLOCK in
+    udev_monitor_new_from_netlink_fd(). This causes boot failures (stuck in
+    initramfs) for a lot of people. Many thanks to Loic Minier for bisecting
+    this!
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 06 Jun 2011 08:49:41 +0200
+
+udev (171-0ubuntu2) oneiric; urgency=low
+
+  * Completely revert changes from 171 for now, until the boot failures that
+    many people hit is debugged.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 31 May 2011 18:34:31 +0200
+
+udev (171-0ubuntu1) oneiric; urgency=low
+
+  * New upstream release.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 31 May 2011 09:23:10 +0200
+
+udev (170-0ubuntu1) oneiric; urgency=low
+
+  * New upstream release.
+  * debian/udev-udeb.install, debian/udev.initramfs-hook: Drop floppy and edd
+    rules, there are obsolete and not built by default any more.
+  * debian/udev.{postinst,postrm,prerm}: Remove a lot of obsolete transition
+    handling.
+  * debian/udev.postinst: Drop create_devices(). devtmpfs does all that by
+    itself these days. Update remove_devices() to clean up.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 20 May 2011 11:26:10 +0200
+
+udev (168-0ubuntu1) oneiric; urgency=low
+
+  * New upstream release.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 16 May 2011 14:44:06 +0200
+
+udev (167-0ubuntu3) natty; urgency=low
+
+  * Remove any old divert with --package udev before upgrading.
+
+ -- Stéphane Graber <stgraber@ubuntu.com>  Wed, 06 Apr 2011 14:12:38 -0400
+
+udev (167-0ubuntu2) natty; urgency=low
+
+  * debian/udev.{postinst,postrm,preinst}: Update diversions to use fake-udev
+    instead of udev as the package. Otherwise the diversion will be ignored.
+    (LP: #745011)
+
+ -- Stéphane Graber <stgraber@ubuntu.com>  Mon, 04 Apr 2011 17:50:13 -0400
+
+udev (167-0ubuntu1) natty; urgency=low
+
+  * New upstream release:
+    - Drop v4l1 code, as current kernels don't ship that any more.
+    - Lots of bug fixes.
+    - Lots of changes to systemd integration (does not affect Ubuntu package).
+    - Use /run/udev/ if possible and fall back to /dev/.udev/ (does not affect
+      current Ubuntu, as we don't have a /run directory).
+    - Some keymap updates for Acer and MSI laptops. (LP: #637695)
+  * debian/libudev0.symbols: Add two new symbols from new version.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 04 Apr 2011 11:26:08 +0200
+
+udev (166-0ubuntu6) natty; urgency=low
+
+  * Fix (i.e. empty) depedency_libs in .la files per Debian Policy 10.2.
+    (LP: #740224)
+
+ -- James Troup <james.troup@canonical.com>  Tue, 22 Mar 2011 17:32:06 +0000
+
+udev (166-0ubuntu5) natty; urgency=low
+
+  * Build for multiarch.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 20 Mar 2011 19:03:51 +0000
+
+udev (166-0ubuntu4) natty; urgency=low
+
+  [ Scott Moser ]
+  * do not create persistent net rules for Eucalyuptus addresses (LP: #719418)
+
+  [ Andy Whitcroft ]
+  * debian/udev.udev-fallback-graphics.upstart: add a new fallback graphics
+    phase (LP: #702090)
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 18 Mar 2011 22:32:14 +0000
+
+udev (166-0ubuntu3) natty; urgency=low
+
+  * debian/udev.{postinst,postrm,preinst}: Don't use --local diversions, but
+    --package udev. The former break with current dpkg, as this now enforces
+    the current policy that maintainer scripts must use --package, not
+    --local. (LP: #727211)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 01 Mar 2011 17:22:08 +0100
+
+udev (166-0ubuntu2) natty; urgency=low
+
+  * Re-enable extras in the udeb build, and explicitly install only the
+    files we need (LP: #724242).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Thu, 24 Feb 2011 12:16:40 +0000
+
+udev (166-0ubuntu1) natty; urgency=low
+
+  * New upstream release:
+    - 8 keymap fixes, including LP: #702426
+    - Fix keymap tool to display scan codes in unexpected event order.
+      (LP: #702407)
+    - Bug fixes.
+  * Merge from trunk:
+    - Create by-id links with interface numbers for USB input devices with
+      multiple interfaces. Thanks a7x! (LP: #626449)
+    - Drop old v4l1 code, to build with current 2.6.38 kernels.
+  * debian/rules prep: Drop gtk-doc.make seddery, it's not necessary any more
+    with the full source tree copying that happens now.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 15 Feb 2011 18:22:47 +0100
+
+udev (165-0ubuntu2) natty; urgency=low
+
+  * debian/rules: For the build-deb/ tree, copy the entire source tree instead
+    of just parts. This keeps gtk-doc working (which doesn't work with
+    out-of-tree build) and avoids building a broken GIR.
+  * debian/rules: Fail build on missing or changed library symbols.
+  * debian/libudev0.symbols, debian/libgudev-1.0-0.symbols: Add new symbols
+    from version 165.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 27 Jan 2011 15:57:29 +0100
+
+udev (165-0ubuntu1) natty; urgency=low
+
+  * New upstream release. Switch to Ubuntu-ish version number to avoid
+    confusing them with Debian's.
+    - Allow local users ACL access to raw USB devices of mobile phones.
+      (LP: #316215)
+    - Allow local users ACL access to raw FFADO devices. (LP: #681755)
+    - Keymap fixes. (LP: #625770, #627890, #686662)
+  * debian/control, debian/gir1.2-gudev-1.0.install: Rename GIR package to
+    gir1.2-* to match the repository version and the recent transition.
+    Add conflicts/replaces to old gir1.0-gudev-1.0.
+  * debian/udev.postinst: Call udevadm --convert-db when upgrading from a
+    version earlier than 165, to update the running database.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Sun, 19 Dec 2010 00:15:00 +0100
+
+udev (164-3) natty; urgency=low
+
+  * debian/udev.initramfs-hook: If /sbin/udevadm.upgrade exists, copy that
+    into the initramfs instead of the shell script wrapper that we have during
+    udev upgrades. (LP: #672964)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 12 Nov 2010 18:35:55 +0100
+
+udev (164-2) natty; urgency=low
+
+  * debian/rules: Fix the libgudev-1.0.so symlink to point to the actual
+    library in /usr/lib. Fixes FTBFS of libgudev rdepends.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Wed, 03 Nov 2010 18:52:55 -0400
+
+udev (164-1) natty; urgency=low
+
+  * New upstream bug fix release.
+  * debian/libgudev-1.0-0.install: Update for new upstream install path of
+    libgudev to /lib. Move it back to /usr/lib/, right now libgobject is still
+    in /usr/lib/.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 26 Oct 2010 12:28:17 -0400
+
+udev (163-1) natty; urgency=low
+
+  * New upstream release. Changes since our last git snapshot:
+    - cdrom_id: Don't read beyond "last track" in TOC.
+    - cdrom_id: Fall back to CDROM_DRIVE_STATUS if all MMC commands fail.
+      (LP: #653568)
+    - keymap: Add alternate MSI vendor name
+    - lots of systemd updates (not relevant for us).
+  * debian/control: Switch Vcs-Bzr: to natty branch.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 11 Oct 2010 08:41:42 +0200
+
+udev (162-2) maverick; urgency=low
+
+  * Merge bug fixes from trunk:
+    - scsi_id: export target port group, for ALUA support
+    - scsi_id: Fix compiler warnings
+    - gudev: Deliver ::uevent signal in the thread-default main loop. This
+      makes it possible to actually use the library in a multi-threaded
+      application.
+    - keymap: Add Lenovo Y550 (LP: #543065)
+    - gudev: add a few annotations that newer gobject-introspection versions
+      demand
+    - Clarify WAIT_FOR documentation
+    - Fix various syntax errors in rules
+    - Add automatic rules syntax check
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 21 Sep 2010 13:28:09 +0200
+
+udev (162-1) maverick; urgency=low
+
+  * New upstream release. Changes since our previous git snapshot:
+    - cdrom_id: Fix DVD-RW media and blank DVD detection.
+    - Do not create persistent name rules for kvm/qemu/vmware interfaces.
+      (LP: #341006)
+  * Add debian/watch.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Sun, 12 Sep 2010 20:12:37 +0200
+
+udev (161+git20100827-1) maverick; urgency=low
+
+  * Merge fixes from trunk:
+    - keymap: Fix Acer TravelMate 4720 (LP: #569815)
+    - gudev: fix crash if netlink is not available (LP: #581527)
+    - udev(7) manpage: Fix description of $attr (LP: #348513)
+  * debian/changelog: Fix bug reference in previous upload.
+  * debian/udev.{pre,post}inst: Remove pre-lucid upgrade code.
+  * debian/udev.postinst: Drop obsolete /lib/udev/devices/sndstat symlink, OSS
+    has gone from our kernels ages ago. (LP: #605443)
+  * debian/udev.postinst, create_devices(): Drop devices which are handled by
+    static_dev_create_links().
+  * debian/udev.postinst, create_devices(): Drop devices which are handled by
+    devtmpfs.
+  * debian/rules: Work around gtk-doc not being able to work in a separate
+    build tree; debian/rules prep already fixes $srcdir→$builddir, so copy
+    the relevant source files into the build tree so that gtk-doc has
+    something to scan for. (LP: #519670)
+  * Add debian/local/hotplug.functions: Provides some helper functions which
+    udev callouts can use. This is being used by usb-modeswitch, alsa, and
+    other Debian packages. Copied from current udev sid package. (LP: #625110)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 30 Aug 2010 11:21:43 +0200
+
+udev (161+git20100825-1) maverick; urgency=low
+
+  * Merge fixes from trunk:
+    - keymap: Fix Sony VAIO VGN-SZ2HP/B (LP: #530137)
+    - keymap: Add HP G60 (LP: #554944)
+    - keymap: Add Onkyo PC (LP: #612529)
+    - Add support for oom_score_adj, which replaces oom_adj in kernel 2.6.36
+    - udevd: remove unneeded credential passing from init_notify()
+  * debian/control: Update Vcs-Bzr to reworked tree. The current tree is now
+    branched from lp:~vcs-imports/udev/trunk (which works well now) instead of
+    the outdated manual lp:~scott/udev/master import.
+  * Add debian/source/format: Keep 1.0 for now. We don't use quilt, but bzr,
+    and this is not a native package.
+  * Add debian/source/options: Supply tar-ignore and diff-ignore options to
+    exclude .bzr/ and test/. This obsoletes the "debian/rules package" rule,
+    so remove that.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 26 Aug 2010 10:59:48 +0200
+
+udev (161+git20100820-1) maverick; urgency=low
+
+  * New upstream release 161, plus fixes from git head: (LP: #620977)
+    - udevadm trigger now defaults to change instead of add.
+    - modem modeswitch removed, use usb_modeswitch instead (see LP #521578)
+    - NAME= now ignored
+    - udevd creates device nodes itself on startup based on modules.udevname
+    - default device permission is 0600
+    - lots of bug fixes 
+    - updated keymaps (LP: #271706, #554066, #569815, #592371)
+    - update udev(7) to point out naming of rules files (LP: #616108)
+    - cdrom_id: fix media state detection of DVD-RW/DVD+RWs (LP: #581925)
+    - cdrom_id: fix media state detection on older hardware (LP: #502143)
+  * debian/libudev0.symbols: Add new symbols from upstream version.
+  * debian/udev.initramfs-hook: Drop 64-device-mapper.rules, it was removed
+    upstream.
+  * debian/control: Drop obsolete (pre-lucid) Breaks and Conflicts.
+  * debian/rules: Replace obsolete dh_clean -k with dh_prep.
+  * debian/control: Slightly more generously version libselinux1-dev build
+    dependency (thanks lintian).
+  * debian/control: Replace obsolete ${Source-Version} with ${binary:Version}.
+  * debian/control: Update Standards-Version to 3.9.1.
+  * debian/control: Add Homepage field.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Sat, 21 Aug 2010 10:07:44 +0200
+
+udev (151-12) lucid; urgency=low
+
+  * Cherrypick keymap fixes from trunk:
+    - Unite laptop models needing common volume-key release quirk. Many laptop
+      models need the same volume-key release quirk. Currently, two models
+      have identical force-release-maps/ keymap files (dell-studio-1557 and
+      fujitsu-amilo-si1848) and two more need to be added (Mitac and Coolbox
+      QBook). This replaces the identical force-release-maps files with one
+      'common-volume-keys' file to make adding new models easier.
+      (LP: #565459)
+    - Add force-release quirk for Coolbox QBook 270-02 (LP: #420473)
+    - Add force-release quirk for Mitac 8050QDA (LP: #374884)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 19 Apr 2010 10:58:13 +0200
+
+udev (151-11) lucid; urgency=low
+
+  * Fix cdrom_id even harder to correctly detecting media. (Committed to
+    and cherrypicked from upstream git head):
+    - Rework feature/profiles buffer parsing: Previously we were ignoring many
+      profiles, which could lead to misdetecting the content types.
+    - Print more debug messages with -d.
+    - Do not ignore errors from scsi_cmd_run(). scsi_cmd_run() can return
+      positive error messages if we have CHECK_CONDITION set and get the error
+      code from the SCSI command result. So check the result for non-zero, not
+      for being negative.  This fix another common cause for "phantom" media
+      in empty CD-ROM drives. (LP: #562978)
+    - Swap media state and TOC info probing. Blank CDs do not have a TOC, thus
+      will fail cd_media_toc() (at least with the "Do not ignore errors from
+      scsi_cmd_run()" fix). Thus probe the media state first, so that we can
+      properly detect blank media.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 15 Apr 2010 22:29:06 +0200
+
+udev (151-10) lucid; urgency=low
+
+  * cdrom_id: Turns out that some ioctls do not actually touch the result
+    buffer in some cases, so we need to zero the result buffers to avoid
+    interpreting random da CD properties. (LP: #559723, LP: #561585) Patch
+    also committed to upstream (2b861)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 13 Apr 2010 15:34:40 +0200
+
+udev (151-9) lucid; urgency=low
+
+  * cdrom_id: In cases where cdrom_id does not go through the entire code path
+    and one of the probing functions returns -1 or exits early, the remaining
+    variables were never initialized. This caused effects like "phantom" audio
+    CDs on empty drives, or bogus data like ID_CDROM_MEDIA_TRACK_COUNT=22528.
+    Initialize the variables right away to avoid that. (LP: #559723) Patch
+    committed to upstream git as well (816e6bf).
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 13 Apr 2010 10:56:38 +0200
+
+udev (151-8) lucid; urgency=low
+
+  * Merge some fixes from GIT HEAD:
+    - Fix keymaps for upcoming Dell laptops.
+    - cdrom_id: Retry to open the device if it's EBUSY. (LP: #554433)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 09 Apr 2010 09:38:54 +0200
+
+udev (151-7) lucid; urgency=low
+
+  * Fix key map for Acer TravelMate 6593G and Acer Aspire 1640. (From GIT
+    HEAD). (LP: #536914)
+  * extras/cdrom_id/60-cdrom_id.rules: Probe hd[a-z] as well, to cover CD
+    drives on platforms (like powerpc) which still use IDE driver, like
+    ide-pmac. (LP: #534912)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 29 Mar 2010 17:28:34 +0200
+
+udev (151-6) lucid; urgency=low
+
+  * Merge some fixes from GIT HEAD:
+    - key release quirk for Fujitsu Amilo 1848+u (LP: #530089)
+    - key release quirk for Samsung Q210/P210 (LP: #530093)
+    - key maps for Acer TravelMate 6593G and Acer Aspire 1640 (LP: #536914)
+    - Decrease buffer size when advancing past NUL byte, to fix a buffer
+      overflow the buffer if space is tight.
+    - udev-acl: Correctly handle ENV{ACL_MANAGE}==0
+    - input_id: Fix linking
+    - firmware: fix possible segfault when firmware device goes away while
+      loading
+    - Fix switching Logitech bluetooth adapters into HCI mode. (LP: #444420)
+    - cdrom_id: Open non-mounted optical media with O_EXCL. This should
+      prevent confusing drives during CD burning sessions.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Wed, 24 Mar 2010 18:47:51 +0100
+
+udev (151-5) lucid; urgency=low
+
+  * Merge from GIT HEAD:
+    - Force key release for volume keys on Dell Studio 1557.
+    - keymap: Add Toshiba Satellite M30X.  LP: #510019.
+    - libudev: export udev_monitor_set_receive_buffer_size()
+    - udevadm monitor: increase netlink buffer size
+      (above two related to LP: #504883)
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 17 Feb 2010 15:47:18 +0000
+
+udev (151-4) lucid; urgency=low
+
+  * debian/udev.initramfs-top: add pre-requisite on blacklist.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 17 Feb 2010 12:41:45 +0000
+
+udev (151-3) lucid; urgency=low
+
+  * 70-acl.rules, 50-udev-default.rules, 78-graphics-card.rules:
+    Adjust to also work for lbm-drm and lbm-nouveau.
+
+ -- Robert Hooker <sarvatt@ubuntu.com>  Thu, 11 Feb 2010 09:01:40 +0100
+
+udev (151-2) lucid; urgency=low
+
+  * debian/udev.initramfs-hook: /lib/udev/firmware.sh got rewritten as a
+    C helper, somehow missed this in testing.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 10 Feb 2010 16:41:06 +0000
+
+udev (151-1) lucid; urgency=low
+
+  * New upstream release:
+    - Support for systems with SYSFS_DEPRECATED=y officially dropped.
+    - Bug fixes.
+    - Rules updates.  LP: #492657, #316215, #259244, #250732.
+
+  * Merge additional fixes from GIT master:
+    - Rules updates.  LP: #581496, #415023.
+    - Fix firmware error reporting.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 10 Feb 2010 11:50:56 +0000
+
+udev (149-5) lucid; urgency=low
+
+  * debian/udev.initramfs-top: chances are we've already got the block
+    device, because the storage controller is the 90% most common one that's
+    built into our kernel.  Therefore probe block devices first before all
+    others, and push probing into the background so we don't wait those
+    tedious tenths of a second to walk sysfs.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 18 Dec 2009 02:42:09 +0000
+
+udev (149-4) lucid; urgency=low
+
+  * debian/udev.initramfs-bottom: Remove the queue cleanup, since it's a
+    no-op now 
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 18 Dec 2009 02:28:06 +0000
+
+udev (149-3) lucid; urgency=low
+
+  * Set DH_OPTIONS= when calling dh_makeshlibs with special -p and -N
+    options, otherwise we end up with incorrect shlibs in libudev0 referring
+    to libgudev-1.0-0. This particularly broke udev-udeb.
+  * Add libudev0-udeb, for the benefit of input_id. We don't strictly need
+    input_id right now, but the library is quite small and it seems easier
+    to go with the flow as other things in the udeb might use libudev later.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Tue, 08 Dec 2009 11:56:06 +0000
+
+udev (149-2) lucid; urgency=low
+
+  * rules/rules.d/78-graphics-card.rules:
+    - Tag the DRM device as the primary device for the display for KMS
+      supporting drivers, otherwise tag the framebuffer device.   This
+      will get exported to Upstart, thus permitting rules such as:
+
+        start on (graphics-device-added PRIMARY_DEVICE_FOR_DISPLAY=1
+                  or drm-device-added PRIMARY_DEVICE_FOR_DISPLAY=1)
+
+      to select either /dev/fb0 or /dev/dri/card0 as appropriate.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 07 Dec 2009 18:49:20 +0000
+
+udev (149-1) lucid; urgency=low
+
+  * New upstream release:
+    - Includes previous GIT updates.
+    - Bug fixes.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 03 Dec 2009 14:56:46 +0000
+
+udev (148~-1) lucid; urgency=low
+
+  * Update to GIT HEAD:
+    - Ignore_device option removed.
+    - BUS, SYSFS and ID are now deprecated and result in a warning.
+    - IDE device support removed from default rules.
+    - New input_id helper, previous uses of the ID_CLASS property on
+      input devices should now use the new ID_INPUT_* properties.  This
+      is a big part of the Halsectomy of X.org
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 02 Dec 2009 01:40:55 +0000
+
+udev (147-1) lucid; urgency=low
+
+  * Update to 147 release:
+    - Includes previous GIT updates.
+    - udev-acl now requires ConsoleKit 0.4.1
+    - gudev API no longer marked as experimental
+    - rules updates.  LP: #281335, #215035, #438114.
+
+  * Added Build-Depends on gobject-introspection, libgirepository1.0-dev
+    and gir1.0-glib-2.0.
+  * Add gir1.0-gudev-1.0 package with introspection data.
+  * Added Breaks on consolekit << 0.4.1
+  * Add missing copyright files for the libudev and libgudev packages
+    which are LGPL 2.1+ and LGPL 2+ respectively, not GPL 2+.
+
+  * Include symbols files and update shlibs to 147.  LP: #427672.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 30 Nov 2009 22:37:34 +0000
+
+udev (147~-6.1) karmic-proposed; urgency=low
+
+  * udev/udev-node.c: Properly close directory handles to fix a major fd leak
+    which caused hotplugging to fail entirely. (LP: #463347)
+  * udev/udevd.c, handle_inotify(): Fix datatype for FIONREAD ioctl return
+    type. It must be an int, not an ssize_t; the latter causes uninitialized
+    values and tries to allocate a 15 digit number of bytes, unless the upper
+    half of the variable just happens to be zeroed. (Upstream commit
+    http://git.kernel.org/?p=linux/hotplug/udev.git;a=commit;h=4daa146b)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 02 Nov 2009 23:47:49 +0100
+
+udev (147~-6) karmic; urgency=low
+
+  * debian/udev.initramfs-hook:
+    - Include the firmware helper.  LP: #381037.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 15 Oct 2009 20:47:20 +0100
+
+udev (147~-5) karmic; urgency=low
+
+  * debian/udev.initramfs-top:
+    - Rename from udev.initramfs-bottom and move from local-premount to
+      init-top
+    - Add a pre-requisite on all_generic_ide so that gets a chance before
+      we load IDE devices.
+  * rules/rules.d/80-drivers.rules:
+    - load the fbcon driver when a framebuffer is created.
+      LP: #392039, #431812.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 23 Sep 2009 14:22:52 -0700
+
+udev (147~-4) karmic; urgency=low
+
+  * Update to GIT HEAD (still pre 147 release):
+    - fix signal mask harder.  LP: #407428, #434852.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 22 Sep 2009 22:45:39 +0100
+
+udev (147~-3) karmic; urgency=low
+
+  * Update to GIT HEAD (still pre 147 release):
+    - includes fix from previous revision
+    - rename interfaces to <iface>_rename if rename fails.  LP: #416782.
+    - drop most NAME keys since 2.6.31 supplies them.
+    - especially those with just "%k".  LP: #430654.
+    - fixed SYMLINK option parsing.  LP: #430654.
+
+  * Remove 40-alsa.rules now it's not shipped upstream.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 21 Sep 2009 16:02:32 -0700
+
+udev (147~-2) karmic; urgency=low
+
+  * rules/rules.d/60-persistent-storage.rules: Fix blkid invocation for
+    CD-ROMs, thanks to Maxim Levitsky for tracking this down! Fix committed to
+    GIT HEAD, and cherrypicked. (LP: #431055)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Sun, 20 Sep 2009 19:47:17 +0200
+
+udev (147~-1) karmic; urgency=low
+
+  FFE LP: #427356.
+
+  * Update to GIT HEAD (pre 147 release):
+    - worker signal mask corrected.  LP: #407428.
+    - database format change to avoid path length issues.  LP: #377121.
+    - multiple devices may not claim the same /dev names, except with
+      symlinks
+    - NAME="%k" produces a warning
+    - symlinks to udevadm no longer resolve to the original command
+    - rules updates.  LP: #281335, LP: #407940, #420015, #426647.
+
+  * Build-depend on gawk, since build fails with mawk.
+
+  * Replace init scripts with Upstart jobs.
+  * debian/control:
+    - Add missing ${misc:Depends}
+    - Bump build-dependency on debhelper for Upstart-aware dh_installinit
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 15 Sep 2009 03:22:11 +0100
+
+udev (146-1) karmic; urgency=low
+
+  * New upstream release:
+    - udevadm trigger "--retry-failed" replaced by "--type=failed"
+    - RUN "ignore_error" option replaced by "fail_event_on_error"
+    - Added HP Presario 2100 keymap.  LP: #20223.
+    - Added more keymap coverage for Compaq Evo models.  LP: #35382.
+    - Added Fujitsu Amilo M keymap.  LP: #48547.
+    - Added Compal Hel80i keymap.  LP: #198530.
+    - Added Zepto ZNote keymap.  LP: #400252.
+    - Added Everex Stepnote XT5000T keymap.  LP: #400921.
+    - Added rules to switch mode of Huawei E1550 GSM modem.  LP: #401655.
+    - Various other keymap and modem updates.
+
+  [ Martin Pitt ]
+  * debian/control: Add missing Breaks: casper (<< 1.174) to avoid breaking
+    upgrades from jaunty in wubi installations. (LP: #400138)
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 25 Aug 2009 13:45:17 +0100
+
+udev (145-1) karmic; urgency=low
+
+  * New upstream release:
+    - detach event from worker if killed.
+    - make sure a worker finishes its event before exiting.  LP: #396957.
+    - handle SIGCHLD before worker messages.
+    - use qsort() to sort list rather than by hand (performance).
+    - correct mangling of scsi_id return values
+
+  * debian/rules: Update "prep" target to not wipe uncommitted files.
+  * debian/libudev-dev.install: Install the restored libtool file
+  * debian/libgudev-1.0-dev.install: Install the restored libtool file
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 14 Jul 2009 17:10:38 +0100
+
+udev (143-8) karmic; urgency=low
+
+  * Disable extras for the udeb, since the necessary dependencies aren't
+    available.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 01 Jul 2009 10:24:17 +0100
+
+udev (143-7) karmic; urgency=low
+
+  * debian/rules: Add "prep" target to get a buildable source tree. This cares
+    for autoconfiscation, and fixes gtk-docs' makefile snippet to get along
+    with our separate build trees.
+  * debian/rules: Call dh_install with --fail-missing, to avoid regressions
+    like the recent dropping of the ConsoleKit helper.
+  * debian/udev.install: Add missing ConsoleKit helper. This repairs device
+    ACLs.
+  * debian/udev.install: Add missing usr/share/doc/udev (README.keymap and
+    "writing udev rules")
+  * debian/udev.install: Install udev.pc. Not much here, but can't hurt, and
+    other software might rely on it.
+  * debian/libgudev-1.0-dev.install: Install gtk-doc documentation.
+  * debian/libudev-dev.install: Install gtk-doc documentation.
+  * debian/copyright: Fix formerly versionless reference to GPL.
+  * debian/control: Put libudev-dev into section "libdevel".
+  * debian/rules: Call dh_installdeb after dh_makeshlibs, so that the
+    debhelper scripts from the latter actually get active. Fixes ldconfig
+    calling.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 30 Jun 2009 19:09:38 +0200
+
+udev (143-6) karmic; urgency=low
+
+  * debian/libgudev-1.0-0.install, debian/libgudev-1.0-dev.install:
+    - Files are actually installed into /usr/lib already
+    - Fix wildcard pkgconfig inclusion
+    - Fix wildcard /usr/include inclusion
+    - Include static library
+    - Drop libtool .la file since it's not generated
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 30 Jun 2009 10:09:42 +0100
+
+udev (143-5) karmic; urgency=low
+
+  * Add missing files.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 30 Jun 2009 09:47:13 +0100
+
+udev (143-4) karmic; urgency=low
+
+  * debian/udev-udeb.install: Drop /etc/scsi_id.config here too
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 29 Jun 2009 12:12:19 +0100
+
+udev (143-3) karmic; urgency=low
+
+  * debian/udev.{install,preinst,postinst,postrm}: /etc/scsi_id.config was
+    dropped upstream, remove from package and on upgrade.
+
+  * debian/udev.postinst: Only divert udevadm back if diverted away, don't
+    on reconfigure, etc.  LP: #366185.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 29 Jun 2009 12:03:04 +0100
+
+udev (143-2) karmic; urgency=low
+
+  * Update to GIT HEAD:
+    - Bug fixes
+    - ATA devices switched the property from ID_BUS=scsi to ID_BUS=ata.
+    - Private properties may be set starting with "."
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 29 Jun 2009 10:51:09 +0100
+
+udev (143-1) karmic; urgency=low
+
+  * New upstream release:
+    - event processes are now re-used to improve performance
+    - libudev no longer has unstable API
+    - merged udev-extras tools and rules
+
+  * debian/control:
+    - udev Conflicts and Replaces udev-extras versions up to current.
+    - merged Build-Depends from udev-extras
+    - added Build-Depends on gtk-doc-tools for documentation generation.
+    - copied details for libgudev-1.0-0 and libgudev-1.0-dev from udev-extras
+  * debian/rules:
+    - replace --exec-prefix with --sbindir, --libdir, --libexecdir and
+      --with-rootlibdir
+    - replace --disable-shared with --enable-static for the udeb, the
+      result is the same
+  * debian/libgudev-1.0-0.install, debian/libgudev-1.0-dev.install:
+    - copy from udev-extras
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 29 Jun 2009 10:43:40 +0100
+
+udev (142-2) karmic; urgency=low
+
+  * Add debian/local/udev.py: Apport package hook to collect hardware
+    information, udev DB/log, and custom udev rule file names. Install it in
+    debian/udev.install.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 15 May 2009 14:34:21 +0200
+
+udev (142-1) karmic; urgency=low
+
+  * New upstream release:
+    - includes previous GIT HEAD updates.
+    - libvolume-id also removed.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 13 May 2009 11:04:31 +0100
+
+udev (141-3+gitf079968) karmic; urgency=low
+
+  * Update to GIT HEAD:
+    - vol_id removed, rules converted to using blkid.
+
+  * Rebuild to hopefully fix FTBFS due to bad diff.gz
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 11 May 2009 11:44:04 +0100
+
+udev (141-2+git4a74214) karmic; urgency=low
+
+  * Update to GIT HEAD:
+    - bugfixes.  LP: #369817, #368109.
+    - libudev allows you to subscribe to udev events, and filter those
+      based on system, etc.
+    - extras/cdrom_id/cdrom_id.c: Add a new key ID_CDROM_MEDIA=1 if there
+      is a CD present. Also, skip media tests if CDROM_DRIVE_STATUS !=
+      CDS_DISC_OK.
+    - rules/rules.d/60-persistent-storage.rules: Only start vol_id if
+      ID_CDROM_MEDIA is set. This should fix the auto-closing of the tray.
+      (LP: #356631)
+
+  * Remove /dev/MAKEDEV symlink on upgrade.
+  * Remove /dev/kmem device node, this is disabled in our kernels and
+    will be created anyway if the module is loaded from a kernel compiled
+    with it enabled.
+
+  * The vol_id binary and libvolume-id library are no longer built by
+    this package.  Software should use the blkid binary and libblkid
+    library supplied by the util-linux source package instead.
+  * Add Breaks on packages that were using vol_id with our blessing.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 07 May 2009 12:48:24 +0100
+
+udev (141-1) jaunty; urgency=low
+
+  * New upstream release.  LP: #358013.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 09 Apr 2009 00:39:51 +0100
+
+udev (140-2) jaunty; urgency=low
+
+  * debian/udev.postinst: On upgrade, replace instances of ATTRS{ in
+    /etc/udev/rules.d/70-persistent-net.rules with ATTR{ otherwise they
+    won't match anymore.  LP: #329106.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 25 Mar 2009 17:57:20 +0000
+
+udev (140-1) jaunty; urgency=low
+
+  * New upstream release:
+    - includes changes from 139-2
+    - udevadm settle can accept a range of events to watch for.
+    - vol_id: ntfs uuid setting fix.  LP: #337015.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 13 Mar 2009 12:40:16 +0000
+
+udev (139-2) jaunty; urgency=low
+
+  * Patch udevadm settle to communicate with udevd to make sure that there
+    aren't any pending inotify events that haven't been turned into uevents.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 10 Mar 2009 13:09:46 +0000
+
+udev (139-1) jaunty; urgency=low
+
+  * New upstream release:
+    - includes changes from 138-2
+    - also further patch to actually remove watches when the devices are
+      removed.  LP: #334278.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 26 Feb 2009 23:41:35 +0000
+
+udev (138-2) jaunty; urgency=low
+
+  * Fix inotify watch code to remove any existing watch before beginning rule
+    processing, and not to add the watch until the rule processing is
+    complete.  This stops us "chasing our own tail" if one of the programs we
+    run writes to the block device, or at least opens it for writing.
+    LP: #332270
+
+  * Fix inotify code to respond to all events, rather than just the first in
+    the buffer repeatedly.  Ironically this bug was causing fewer people to be
+    affected by #332270.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 23 Feb 2009 20:28:58 +0000
+
+udev (138-1) jaunty; urgency=low
+
+  * New upstream release:
+    - Block device nodes watched with inotify for changes and
+      /dev/disk/by-{uuid,label} updated automatically.
+    - Loop devices now get persistent disk links too.
+
+  * Apply NAME rules when string_escape=none.  LP: #325690.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 20 Feb 2009 13:37:24 +0000
+
+udev (137-2) jaunty; urgency=low
+
+  * If the kernel uevent sequence number is not available, do not restart
+    udev; solves an issue during upgrade in the chroot of a buildd.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 27 Jan 2009 13:35:07 +0000
+
+udev (137-1) jaunty; urgency=low
+
+  * New upstream release:
+    - udevadm test no longer has force option.
+    - udevd has --resolve-names=early|late|never option.
+    - Group of IDE CD-ROM drives fixed.  LP: #315997.
+    - Group of DRI subsystem fixed.  LP: #317430.
+    - /etc/udev/rules.d not existing is not an error.  LP: #315780.
+    - Bug where device nodes would be replaced by symlinks on rename has been
+      fixed.  LP: #315979.
+
+  * Use --resolve-names=never in the installer and initramfs, since we don't
+    have a useful name service.  LP: #319199.
+  * Since we don't have to worry about group lookup, we may as well copy the
+    default rules into the initramfs as well.  This actually double-solves
+    LP: #315979.
+  * Make sure the root filesystem is writable before attempting to copy
+    generated rules across.  LP: #224870.
+  * Remove /dev/MAKEDEV symlink; the FHS no longer requires it when /dev
+    is automatically managed.
+
+  * It is not permitted to call udevadm trigger or settle during an upgrade
+    without depending on udev.  Attempting this will fail.
+  * Change /etc/init.d/udev restart to actually restart the daemon, with a
+    bit of detection to print a warning if we missed events while the
+    daemon was down.
+  * Refreshing /dev is now /etc/init.d/udev refresh-devices
+  * Restart udev daemon after upgrade.  LP: #317944.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 23 Jan 2009 15:15:07 +0000
+
+udev (136-5) jaunty; urgency=low
+
+  * debian/udev-udeb.dirs: Create /lib/udev/devices/{net,pts,shm} in the
+    udeb too, since (a) the installer-startup script gets a bit upset if
+    /lib/udev/devices doesn't exist or is empty, and (b) they seem like
+    reasonable things to have anyway.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Tue, 20 Jan 2009 15:33:01 +0000
+
+udev (136-4) jaunty; urgency=low
+
+  * debian/udev.preinst, debian/udev.postinst, debian/udev.postrm: A couple
+    of conffiles from an earlier udev package are still around for several
+    people, make sure that we delete these too.
+
+  * debian/compat: Update to 7.
+  * debian/control: Bump debhelper build-dep, and standards version.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 12 Jan 2009 16:59:47 +0000
+
+udev (136-3) jaunty; urgency=low
+
+  * debian/udev.links, debian/udev-udeb.links: Create a vol_id symlink in
+    /sbin since this is a generally useful binary to have around.  This
+    was probably accidentally dropped in the -2 upload because they weren't
+    committed to bzr.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Sat, 10 Jan 2009 18:18:53 +0000
+
+udev (136-2) jaunty; urgency=low
+
+  * debian/control: Set priorities of -dev packages to optional.
+  * debian/rules: Take arguments off calls to dh_makeshlibs and dh_shlibdeps,
+    otherwise the libudev0 shlibs goes a bit wrong.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 07 Jan 2009 15:40:58 +0000
+
+udev (136-1) jaunty; urgency=low
+
+  One of the biggest changes in this release is that the default rules
+  are no longer conffiles and are now installed into /lib/udev/rules.d
+
+  You may still add your custom rules to /etc/udev/rules.d and these
+  will be processed after the default ones, and can thus override
+  anything they do.
+
+  To avoid side-effects of default rules (ie. running of programs),
+  create the file with the same name.
+
+  * New upstream release:
+    - Changed to use autoconf
+    - Default rules moved to /lib/udev/rules.d
+    - udevadm symlinks removed.
+    - udevadm info output for --device-id-of-file changed.
+    - udevadm trigger has new --type option.
+    - libvolume_id soname change.
+    - libvolume_id now able to return multiple matches for a single block
+      device, or no matches if conflicting metadata found.
+    - libudev shared library introduced.
+    - by-id/scsi-* and by-id/ieee-* links both created by Firewire disks.
+    - Optical devices no longer probed for raid signatures.  (LP: #283316).
+    - DEVTYPE=disk/partition no longer exported by default.
+    - pnp support removed now that we have MODALIAS support in kernel.
+    - Introduced /dev/block and /dev/char (see changelog for 124-6).
+    - Rule matching engine changed, limits such as 5 ENV and ATTR matches
+      and only one match for any other key are now gone.  NAME assignment
+      is no longer special cased (subsequent assignments will now overwrite
+      unless := is used).
+    - Substantial memory footprint reduction work.
+
+  * debian/patches/01-cdrom-vol_id-probing.patch:
+    - Dropped, included in upstream release.
+  * debian/patches/80-extras-dvb_device_name.patch:
+    - Dropped, no longer compiles and won't be needed from the next kernel
+      onwards.  Since these aren't boot critical, just do it in shell.
+  * debian/patches/80-extras-firmware.patch:
+    - Dropped, no longer compiles anyway so we may as well just use the
+      upstream firmware.sh which also supports crazy PackageKit stuff
+  * debian/patches/80-extras-ide_media.patch:
+    - Dropped, the ide subsystem has had MODALIAS support since hardy using
+      the media type.
+  * debian/patches/80-extras-usb_device_name.patch:
+    - Dropped, we no longer need to support the legacy usb_device subsystem
+      since we've had the newer ENVTYPE=usb_device objects since hardy.
+    - Bump minimum kernel version to 2.6.24 for the initramfs.
+  * debian/patches/80-extras-vio_type.patch:
+    - Dropped, we don't even build these modules. 
+  * debian/patches/80-extras-watershed.patch:
+    - Dropped, we do not used it in any udev rules shipped in this package;
+      it can be separated out into another source package if other things
+      still use it (which we should try to make them not).
+
+  * Merged our rules with Upstream default rules, this results in a number
+    of minor changes but achieves consistency with other distributions:
+    * /dev/net/tun is now mode 666, the kernel documentation says this is safe
+      since you still need CAP_NET_ADMIN to create tunnels.
+    * /dev/srN are now the definitive names of SCSI CD-ROM devices, with
+      /dev/scdN as deprecated symlinks to them; this is the exact opposite of
+      how we had things before.
+    * /dev/nvram is now in the kmem group, the nvram group has been dropped.
+    * Removable disks have moved from the floppy group to the disk group, with
+      floppy now largely reserved for real old-fashioned floppy devices (and
+      the /dev/fd* devices are now all in floppy).  LP: #260982.
+    * CD/BD-ROM devices should now consistently be in the cdrom group.
+    * Tape devices should now consistently be in the tape group.
+    * More video devices consistently in the video group.
+    * Printers on printer-specific ports now in the lp group, ppdev module
+      loaded when necessary.
+    * The scanner group has been dropped, it's become increasingly difficult
+      to determine what is and isn't a scanner; especially with multi-function
+      devices - access to scanners is better handled by ACL now.
+    * /dev/input devices no longer group writable
+    * /dev/tty devices are now group writable (wall/write enabled)
+    * /dev/rtc restored to root group.  LP: #306458.
+    * Various changes to the way the dialout group is assigned, should lead
+      to more reliable device groups thus specific rules dropped.
+      LP: #264792.
+    * Support for infiniband, iowarrior, usbdpfp, sxctl, rioctl, bsg and
+      etherd devices.
+
+  * Add LSB headers to init scripts.  LP: #312324.
+  * Correct name of CD Aliases generator in postinst.  LP: #250232.
+  * Fixed /usr/lib/libvolume_id.so symlink.  LP: #232434.
+  * Dropped /dev/.static/dev.  LP: #253786.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 07 Jan 2009 14:01:19 +0000
+
+udev (124-12) jaunty; urgency=low
+
+  * Mount /dev/pts at the end of /lib/debian-installer/start-udev, as
+    Debian's corresponding script does so and bterm needs it (previously it
+    was silently falling back to legacy PTYs, which are no longer so readily
+    available and are undesirable anyway).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 29 Dec 2008 20:22:33 +0000
+
+udev (124-11) jaunty; urgency=low
+
+  * Mount /dev as a tmpfs at the start of /lib/debian-installer/start-udev,
+    and create the console and null devices there.
+    /lib/debian-installer/init-udev-devices used to do this, but that no
+    longer exists (LP: #300426).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Thu, 20 Nov 2008 21:44:22 +0000
+
+udev (124-10) jaunty; urgency=low
+
+  * Cherry-pick from Debian 0.125-6:
+    - Move in the udeb /lib/debian-installer-startup.d/S02udev to
+      /lib/debian-installer/start-udev because udev will now be started
+      before the busybox init. Patch by Jérémy Bobbio. (Closes: #493865)
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Tue, 04 Nov 2008 23:43:32 +0000
+
+udev (124-9) intrepid-proposed; urgency=low
+
+  * Add debian/patches/01-cdrom-vol_id-probing.patch: Do not run vol_id on
+    optical drives if there is no medium in the drive. Doing so open()'s the
+    drive without O_NONBLOCK which closes the tray. Patch backported from
+    upstream GIT (released in version 126). (LP: #283316)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 03 Nov 2008 19:02:15 +0100
+
+udev (124-8) intrepid; urgency=low
+
+  * debian/rules.d/60-symlinks.rules:
+    - Add /dev/rtc symlink pointing to the CMOS RTC if it exists (almost
+      always rtc0, but we match properly by driver).  LP: #252924.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 24 Oct 2008 10:45:31 +0100
+
+udev (124-7) intrepid; urgency=low
+
+  * debian/rules.d/65-id-type.rules:
+    - Ensure that ID_TYPE is set to "disk" for block devices that are
+      likely disks, or "cd" for those that are likely CDs.  In some cases
+      this has been lost in favour of $DEVTYPE, but many things (including
+      our installer) haven't caught up.  LP: #287807.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 23 Oct 2008 02:09:43 +0100
+
+udev (124-6) intrepid; urgency=low
+
+  * Backport addition of /dev/{block,char}/maj:min symlinks from latest
+    udev rules; this mirrors the /sys/dev/{block,char}/maj:min symlinks
+    found in our current kernel.
+
+    If you have a device node, stat() it to obtain type, major and minor
+    and readlink /sys/dev/{block,char}/maj:min to obtain the sysfs path
+    of that device.
+
+    If you have a sysfs path, read the "dev" file to obtain major and minor
+    (it's char unless in the block subsystem), and then readlink
+    /dev/{block,char}/maj:min to obtain the device node.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 07 Oct 2008 14:37:44 +0100
+
+udev (124-5) intrepid; urgency=low
+
+  * re-introduce the change of 124-3, but make sure it only ignores these
+    errors in a vserver environment.
+
+ -- Reinhard Tartler <siretart@tauware.de>  Tue, 23 Sep 2008 22:52:00 +0200
+
+udev (124-4) intrepid; urgency=low
+
+  * Revert the previous upload.
+
+    This would cause a failure to install the package correctly to be ignored,
+    and could result in ordinary systems not booting.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 23 Sep 2008 13:16:34 -0700
+
+udev (124-3) intrepid; urgency=low
+
+  * debian/udev.postinst:
+    - don't fail to install/upgrade in a vserver environment by ignoring 
+      errors of mknod.  LP: #144685
+
+ -- Reinhard Tartler <siretart@tauware.de>  Mon, 08 Sep 2008 18:04:25 +0200
+
+udev (124-2) intrepid; urgency=low
+
+  * debian/udev.initramfs-hook:
+    - Remove mention of pnp_modules.  LP: #248378.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 14 Jul 2008 13:49:09 +0100
+
+udev (124-1) intrepid; urgency=low
+
+  * New upstream release:
+    - udevmonitor, udevtest, udevcontrol and udevtrigger symlinks removed
+    - abstract namespace socket paths should be prefixed with @
+    - cdrom_id replaced by a better version
+    - scsi_id no longer depends on sysfs
+    - 05-udev-early.rules removed
+
+  * Patches from git dropped due to upstream update.
+  * Dropped 50-vol_id-on-entire-disk.patch, as noted in the changelog, this
+    was a temporary measure and should be fixed by the kernel.
+
+  * Drop pnp_modules now that recent kernels export module aliases for these
+    module groups.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 14 Jul 2008 11:06:43 +0100
+
+udev (117-8) hardy; urgency=low
+
+  * Remove cruft from diff.gz that prevented build.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 11 Apr 2008 13:05:56 +0100
+
+udev (117-7) hardy; urgency=low
+
+  * debian/patches/50-vol_id-on-entire-disk.patch:
+    - Run vol_id on the entire disk again.  LP: #192794.
+    - The reason it was disabled upstream was to avoid the cases where
+      removable devices don't issue "change" events and stale information is
+      left.
+    - Since this behaviour would not be a regression from gutsy, and losing
+      support for LVM PVs on the entire disk is a definite regression (since
+      it's documented to do it that way in various places) we've reverted
+      the upstream disabling.
+    - After 2.6.25 (so hopefully 8.10), the kernel will issue "change"
+      events and always read all volumes; so this is a very temporary patch.
+  * Place scsi type 0 devices in the "disk" group".
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 11 Apr 2008 10:20:37 +0100
+
+udev (117-6) hardy; urgency=low
+
+  * Automatically add ADDR{type}=="1" to 70-persistent-net.rules rules
+    where we can or at least add a useful comment where the user has written
+    their own rule that's broken in the same way.  LP: #183968.
+  * Automatically comment out rules from 70-persistent-net.rules that would
+    match any device.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 10 Apr 2008 23:49:41 +0100
+
+udev (117-5) hardy; urgency=low
+
+  * Merge the "volumeid" package back into "udev", there is no particular
+    gain to it being a separate binary package and it prevents the upgrade
+    from dapper from migrating the fstab to UUID.  LP: #209347.
+
+  * debian/patches/00-git-bad-net-rules.patch:
+    - Upstream patch from 118 to avoid creating persistent net rules
+      which will match any device.
+  * debian/patches/01-git-squashfs-lzma.patch:
+    - Upstream patch from 118 to detect LZMA-compressed squashfs.
+  * debian/patches/02-git-squashfs-endian.patch:
+    - Upstream patch from 118 to detect endianness of LZMA squashfs.
+  * debian/patches/03-git-vol_id-timeout-once.patch:
+    - Upstream patch from 118 to only timeout once for unreadable devices.
+      LP: #156184.
+  * debian/patches/04-git-multiple-floppy-devices.patch:
+    - Upstream patch from 118 to fix create_floppy_devices for more than
+      one floppy device.  Possibly LP: #132546.
+  * debian/patches/05-git-vol_id-probe_all-readable.patch:
+    - Upstream patch from 118 to check whether a device is readable before
+      probing.  Also LP: #156184.
+  * debian/patches/00upstream-RUN-for-remove.patch:
+    - Rename to 06-git-run-for-remove.patch so its in series with other
+      git patches (this is from 119)
+  * debian/patches/07-git-unlock-write_net_rules.patch:
+    - Upstream patch from 119 to unlock rules after invalid match, correcting
+      a bug introduced by 00-git-bad-net-rules.patch
+  * debian/patches/08-git-vol_id-uuid-buffer.patch:
+    - Upstream patch from 119 to correct UUID raw buffer usage.
+  * debian/patches/09-git-update-ext.patch:
+    - Upstream patch from 119 to update ext filesystem detection.
+  * debian/patches/10-git-match-basename.patch:
+    - Upstream patch from 119 to add match on the basename of an interface
+      so we can deal with PS3 multiple interfaces with the same MAC.
+  * debian/patches/11-git-persistent-change.patch:
+    - Upstream patch from 119 to run persistent device rules on change
+      events.
+  * debian/patches/12-git-serialise-same-devno.patch:
+    - Upstream patch from git to serialise multiple events with the same
+      device number, fixes a race with serial ttys amongst other things.
+
+  * 20-names.rules:
+    - Add missing quotes for infiniband rules.  LP: #192552.
+    - Change "rdma_ucm" to "rdma_cm" (same bug).
+  * 40-permissions.rules, 40-basic-permissions.rules:
+    - Split out the most basic permissions into a separate file that can be
+      used in the installer and initramfs.  LP: #204108.
+    - Add rules to place known USB serial devices that need libusb access
+      in the dialout group.  LP: #198757.
+  * 65-persistent-storage.rules, 65-persistent-storage-tape.rules,
+    65-persistent-input.rules, 66-persistent-storage-edd.rules:
+    - Use upstream rule names for all rules.  Also LP: #186686.
+    - Add persistent-storage-edd.rules to installer and initramfs.
+  * 80-programs.rules:
+    - Pass $root/%k to create-floppy-devices, not $tempnode.  LP: #132546.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 02 Apr 2008 18:59:56 +0100
+
+udev (117-4ubuntu2) hardy; urgency=low
+
+  * The persistent-storage-edd rules need to be numerically
+    persistent-storage+1 (as they are in the original source). Changed from
+    65 to 66. LP: #186686
+
+ -- Ben Collins <bcollins@ubuntu.com>  Wed, 02 Apr 2008 11:28:22 -0400
+
+udev (117-4ubuntu1) hardy; urgency=low
+
+  * change the "Breaks: libdevmapper1.02" to a Conflict to help
+    the apt resolver calculating the upgrade (LP: #203756)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 19 Mar 2008 16:27:39 +0100
+
+udev (117-4) hardy; urgency=low
+
+  * Add debian/patches/00upstream-RUN-for-remove.patch:
+    - Execute RUN rules for device removals even if the device is not present
+      any more (like for USB devices).
+    - This restores the behaviour of earlier versions and fixes race
+      conditions with hal for e. g. cryptsetup, and device naming.
+    - Patch taken from upstream git (see patch header).
+    - LP: #148003
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 07 Feb 2008 09:45:24 +0100
+
+udev (117-3) hardy; urgency=low
+
+  * Ship symlinks of old udevtrigger, udevsettle, udevinfo and udevmonitor
+    tools to udevadm in the udeb.  Use of these should be replaced with
+    calls to udevadm itself as soon as possible.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 20 Dec 2007 03:47:34 +0000
+
+udev (117-2) hardy; urgency=low
+
+  * Don't ship upstream udev rules.  LP: #176537, #176546.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Sat, 15 Dec 2007 15:05:57 +0000
+
+udev (117-1) hardy; urgency=low
+
+  * New upstream release:
+    - udev ancillary tools merged into a single udevadm binary.
+    - dynamic rules may be created in /dev/.udev/rules.d
+    - SYMLINK=="value" matches currently defined symlinks.
+    - RUN{ignore_error} will ignore errors from programs.
+    - vol_id recognises FAT partitions with 8192 sector size.  LP: #147807.
+
+  * debian/patches/10-git-linux_raid-1.0-metadata.patch:
+    - Dropped, included in new upstream version.
+  * debian/patches/80-extras-firmware.patch:
+    - Change to add a new extra helper rather than patch the existing one,
+      makes updating easier.
+
+  * 00-init.rules:
+    - Rename to 05-udev-early.rules to match upstream
+  * 05-options.rules:
+    - Do not remove static devices
+  * 20-names.rules:
+    - Update to 2.6.24-style usb_device objects
+  * 40-permissions.rules:
+    - Update to 2.6.24-style usb_device objects
+    - Place SCSI type 4 devices into the cdrom group
+  * 65-persistent-storage-tape.rules:
+    - New upstream rules file for tape devices containing rules separated
+      out from 65-persistent-storage.rules
+  * 90-modprobe.rules:
+    - Fix strange syntax error introduced by mjg59 leaving a note in the
+      rule that wasn't in a comment.
+  * 99-udevmonitor.rules:
+    - Rename to 95-udev-late.rules to match upstream
+    - Run REMOVE_CMD environment if it exists.
+
+  * debian/migrate-iftab.pl:
+    - Lowercase MAC addresses on migration.  LP: #151786.
+  * debian/udev.init:
+    - Update all binaries to be calls to udevadm.
+  * debian/udev.initramfs-hook:
+    - Copy in udevadm rather than the symlinks to it.
+    - Update filenames of early rules file.
+    - Copy in late rules now we have udev monitor there.
+  * debian/udev.initramfs-nfs:
+    - Update all binaries to be calls to udevadm.
+  * debian/udev.initramfs-premount:
+    - Update all binaries to be calls to udevadm.
+  * debian/udev.installer-startup:
+    - Update all binaries to be calls to udevadm.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 14 Dec 2007 12:15:30 +0000
+
+udev (113-0ubuntu16) gutsy; urgency=low
+
+  * Rename the finish init.d script to udev-finish, and move from S23 to
+    S37 so it runs after /var has actually been mounted.  This would
+    otherwise cause a missing udev.log and non-generation of the persistent
+    rules.  LP: #149319.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 05 Oct 2007 16:21:58 +0100
+
+udev (113-0ubuntu15) gutsy; urgency=low
+
+  * Ship the UUID migration script as a separate executable, called by
+    volumeid's postinst; also ensure we don't call it when installing the
+    base system on the LiveCD (oops!)
+  * Migrate /etc/fstab settings to the new rules generator.  LP: #125139.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 03 Oct 2007 16:07:58 +0100
+
+udev (113-0ubuntu14) gutsy; urgency=low
+  
+  * Fix volumeid.postinst. Missing ;; in a couple of places.
+
+ -- Fabio M. Di Nitto <fabbione@ubuntu.com>  Sat, 29 Sep 2007 05:57:45 +0200
+
+udev (113-0ubuntu13) gutsy; urgency=low
+
+  * don't do UUID conversion for /dev/mapper/*_crypt devices. Those are
+    created by partman-crypto, and are used by cryptsetup's cryptroot-hook.
+    Corresponds to change in partman-crypto and LP bug #144390.
+
+ -- Reinhard Tartler <siretart@tauware.de>  Fri, 28 Sep 2007 18:25:40 +0200
+
+udev (113-0ubuntu12) gutsy; urgency=low
+
+  * If we're going to put udevmonitor in the udeb, we should include
+    99-udevmonitor.rules otherwise we have a bit of a chocolate teapot.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 27 Sep 2007 16:47:29 +0100
+
+udev (113-0ubuntu11) gutsy; urgency=low
+
+  * debian/patches/10-git-linux_raid-1.0-metadata.patch:
+    - Upstream patch to fix detection of linux_raid metadata v1.0 and
+      produce correct UUIDs for such raid devices.  LP: #133773
+
+  * 20-names.rules:
+    - Place ucm[0-9]* and rdma_ucm into the infiniband dir.  LP: #124990.
+  * 80-programs.rules:
+    - Fix calling of create_floppy_devices to just $tempnode not
+      $root/$tempnode, which is just plain wrong.  LP: #132546.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 24 Sep 2007 13:18:41 +0100
+
+udev (113-0ubuntu10) gutsy; urgency=low
+
+  * Add cdrom_id and corresponding rules to the udeb.  LP: #143958.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Sun, 23 Sep 2007 19:43:49 +0100
+
+udev (113-0ubuntu9) gutsy; urgency=low
+
+  * Make sure /lib/udev/write_net_rules is executable in the udeb.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Tue, 18 Sep 2007 19:07:21 +0100
+
+udev (113-0ubuntu8) gutsy; urgency=low
+
+  * Clean up the tifm code, add support for memory stick 
+
+ -- Matthew Garrett <mjg59@srcf.ucam.org>  Fri, 31 Aug 2007 23:14:26 +0100
+
+udev (113-0ubuntu7) gutsy; urgency=low
+
+  * Place the libvolume_id.so symlink in the libvolume-id-dev package, and
+    in /usr/lib.  LP: #132536. 
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 15 Aug 2007 16:09:00 +0100
+
+udev (113-0ubuntu6) gutsy; urgency=low
+
+  * Include a base-installer.d script to copy persistent rules to the target
+    system in d-i (in line with Debian udev 0.097-1 and Debian bug #433935).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 20 Jul 2007 13:44:21 +0100
+
+udev (113-0ubuntu5) gutsy; urgency=low
+
+  * Reupload.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 13 Jul 2007 14:12:12 +0100
+
+udev (113-0ubuntu4) gutsy; urgency=low
+
+  * Adjusted volumeid postinst; we now support mounting software RAID (md),
+    devmapper (dm) and LVM devices by UUID.
+  * s/KERNEl/KERNEL/ in 20-names.rules.  LP: #125336.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 13 Jul 2007 12:37:36 +0100
+
+udev (113-0ubuntu3) gutsy; urgency=low
+
+  * Minor fix s/$k/$tempnode/.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 11 Jul 2007 16:48:45 +0100
+
+udev (113-0ubuntu2) gutsy; urgency=low
+
+  * Set group of nvram to nvram.  LP: #108460.
+  * Move udevmonitor to /sbin.  LP: #119091.
+  * Update shlibs of libvolumeid.  LP: #121074.
+  * Added rules for infiniband nodes.  LP: #124990.
+  * Don't seed the initial persistent rules, instead wait for the first
+    boot.  LP: #123559.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 10 Jul 2007 17:30:28 +0100
+
+udev (113-0ubuntu1) gutsy; urgency=low
+
+  * New upstream release:
+    - control characters in labels are hex-encoded rather than removed.
+    - existance of sysfs files can be tested with TEST
+
+  * debian/patches/01-lib-udev.patch:
+    - Dropped, merged upstream.
+  * debian/patches/10-suppress-syslog.patch:
+    - Dropped, --verbose no longer sends messages to syslog so the additional
+      option is unneeded.
+  * debian/patches/40-no_replace.patch:
+    - Dropped, merged upstream and renamed to string_escape=none.
+  * debian/patches/50-result-whitespace.patch:
+    - Dropped, merged upstream.
+  * debian/patches/55-run-program.patch:
+    - Dropped, merged upstream.
+  * debian/patches/60-mknod-symlink-races.patch:
+    - Dropped, merged upstream and improved so that it can't end up in an
+      infinite loop; and symlinks will only replace a block device with the
+      correct major/minor.
+  * debian/patches/91-skip-whole-disk.patch:
+    - Dropped, merged upstream.
+
+  * Rule updates:
+    - Place auer, cpad, dabusb, hiddev & legousbtower devices under /dev/usb.
+    - Move /dev/usblp* to /dev/usb/lp*, and retain compatibility symlink
+      (justification: devices.txt)
+    - Place raw I/O devices under /dev/raw.
+    - Set group of vcs devices to root.
+    - Use create_floppy_devices callout to make special floppy device nodes.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 10 Jul 2007 13:35:43 +0100
+
+udev (111-0ubuntu6) gutsy; urgency=low
+
+  * debian/patches/80-extras-vio_type.patch:
+    - set logging_init to vio_type
+    - use sysfs_init/_cleanup to get sysfs_path
+    - add sparc vio support
+    - dont report errors if we can't read devspec on sparc
+
+  * debian/rules.d/90-modprobe.rules:
+    - add support for sunvnet and sunvdc
+
+ -- Fabio M. Di Nitto <fabbione@ubuntu.com>  Wed, 04 Jul 2007 09:45:56 +0200
+
+udev (111-0ubuntu5) gutsy; urgency=low
+
+  * Add network device rule generation code to udev-udeb.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Sun, 17 Jun 2007 11:10:20 +0100
+
+udev (111-0ubuntu4) gutsy; urgency=low
+
+  * adduser added as a dependency (LP: #118164)
+
+ -- Nathan Handler <mrcheatr@gmail.com>  Thu, 31 May 2007 19:04:49 -0500
+
+udev (111-0ubuntu3) gutsy; urgency=low
+
+  * 40-no_replace.patch: updated to include corresponding documentation
+    for the "OPTIONS" section of the udev manpage.
+
+ -- Kees Cook <kees@ubuntu.com>  Sun, 27 May 2007 10:54:52 -0700
+
+udev (111-0ubuntu2) gutsy; urgency=low
+
+  * Needs to be "cd /sys/class/net || return 0" not just "|| return"
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 23 May 2007 20:30:54 +0100
+
+udev (111-0ubuntu1) gutsy; urgency=low
+
+  * New upstream release:
+    - many bug fixes,
+    - ACTION!="add|change" now works as expected.
+
+  * Enable the upstream rule_generator extra, and include the rules for both
+    CD aliases and network devices.  These generate rules files for each new
+    piece of unique hardware discovered, giving a consistent name thereafter.
+
+    ie. if you add a new network card, it is assigned the next eth* number,
+    and will have that number every single time you boot.  Likewise a new
+    CD writer would get the next free cdrw* symlink, and keep that symlink
+    forever.
+  * Drop hard-coded cdrom/cdrw/dvd/dvdrw symlinks.
+  * Install additional udev.finish script at rcS.d/S23, so it runs after
+    mtab and updates the existing rules files.
+
+  * 80-extras-iftab_helper.patch: Drop this patch since we're now using the
+    upstream persistent net rule generator rather than requiring users to
+    hand-maintain /etc/iftab.
+  * 70-rename-netif-increment.patch: Drop this patch, was an obscure iftab
+    feature that we're deprecating.
+  * 25-iftab.rules; Drop rules file that calls the iftab_helper.
+
+  * 60-mknod-symlink-races.patch: New patch that repeats the call to mknod()
+    or symlink() as long as it fails because something already exists, and
+    we haven't failed to remove anything first.
+
+  * 90-persistent-dm-md.patch: Drop this patch, instead we maintain persistent
+    symlinks for devmapper and mdadm devices in a separate rules file
+    shipped with those packages.
+
+  * 40-permissions.rules: place mmc and pcmcia block devices in the plugdev
+    group, EPSON scsi devices in the scanner group and scsi media changer
+    devices in the tape group.
+  * 90-modprobe.rules: load the osst module for Onstream ADR* tape devices,
+    load the ch module for SCSI media changer devices.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 23 May 2007 13:44:22 +0100
+
+udev (108-0ubuntu4) feisty; urgency=low
+
+  * Avoid SUBSYSTEMS!= since that doesn't actually appear to work, instead
+    use the start/end trick.  LP: #75753.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 10 Apr 2007 12:17:42 +0100
+
+udev (108-0ubuntu3) feisty; urgency=low
+
+  * 40-no_replace.patch: add "no_replace" to OPTIONS that applies for the
+    rule it appears in, preventing replacing of untrusted characters when
+    obtaining results from PROGRAM rules, and when setting NAME and
+    SYMLINK.  LP: #92162.
+  * Create scanner and nvram groups in postinst if they don't already
+    exist.  LP: #38203.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed,  4 Apr 2007 10:23:44 +0100
+
+udev (108-0ubuntu2) feisty; urgency=low
+
+  * Add breaks on devmapper less than the current version, since the
+    rendezvousing will fail to work correctly without it.
+  * Update 90-extras-iftab_helper.patch to correct bug when called with a
+    network device with no associated hardware.  LP: #74077.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue,  3 Apr 2007 16:09:04 +0100
+
+udev (108-0ubuntu1) feisty; urgency=low
+
+  * New upstream release:
+    - many bug fixes,
+    - DRIVER== will now only match devices that have a real driver.
+    - SYMLINKs may now have per-device priorities specified with
+      OPTIONS="link_priority=100", removal of a device means that the symlink
+      will be changed to point at the device with the next highest priority.
+    - dasd_id removed from the tree
+
+  * 10-suppress-syslog.patch: patch from Ian Jackson to add an option to
+    udevd to suppress the logging of messages with syslog.
+  * 80-extras-watershed.patch: take Ian's watershed utility that he added
+    directly to the upstream source, and split off into a proper patch of
+    its own.
+  * 90-persistent-dm-md.patch: create persistent storage links for devmapper
+    and mdadm devices, running these rules whenever a change event occurs
+    LP: #75681.
+  * 90-skip-whole-disk.patch: renumber to 91-skip-whole-disk.patch
+
+  * Move the rule to name devmapper devices using dmsetup into the dmsetup
+    package, and from there to a correct 25-dmsetup.rules name.  This
+    shouldn't have been mixed in with the persistent symlinks code.
+
+  * Change the permission-applying rules to use ATTRS instead of ATTR.
+    LP: #75753.
+  * Move 50-cdrom_id.rules to 30-cdrom_id.rules.  LP: #75753.
+  * Fixed /dev/pilot rule to use ATTRS instead of ATTR.  LP: #89687.
+
+  * Drop the rules that used grepmap to parse modules.ccwmap and
+    modules.inputmap, since these modules now use modules.alias
+  * Drop dependency on grepmap.
+
+  * Decrease minimum kernel version to 2.6.17, after some testing we can
+    confirm that the rules we ship with work there.
+
+  * Update the standard prep_/undo_/rm_/mv_/conffile functions to take
+    into account current dpkg behaviour wrt obsolete conffiles.  The conffile
+    is now moved out of the way in preinst and the moved conffile either
+    deleted or moved into its new location in postinst; in postrm we move
+    the conffile back to its original name.
+
+    This means that the conffile is not present with its original name when
+    dpkg configures the new versiom, so is not left in the conffile list as
+    obsolete.
+  * Purge backups of modified obsolete conffiles when the package is purged.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon,  2 Apr 2007 18:31:47 +0100
+
+udev (103-0ubuntu14) feisty; urgency=low
+
+  * Ensure that tifm_sd is autoloaded on card insertion 
+
+ -- Matthew Garrett <mjg59@srcf.ucam.org>  Sun, 25 Mar 2007 18:43:07 +0100
+
+udev (103-0ubuntu13) feisty; urgency=low
+
+  * Include firmware helper in the initramfs.
+
+ -- Kyle McMartin <kyle@ubuntu.com>  Fri, 23 Feb 2007 22:45:18 -0500
+
+udev (103-0ubuntu12) feisty; urgency=low
+
+  * Tolerate failure of usplash_write, by adding ||: to the relevant
+    calls.  This will prevent /etc/init.d/udev from failing to start udev
+    in the cases where usplash_write fails in an unexpected way (eg, as
+    evidenced in LP #83878, where libx86 was missing and ld.so caused
+    usplash_write to exit nonzero).
+
+ -- Ian Jackson <iwj@ubuntu.com>  Thu,  8 Feb 2007 18:03:16 +0000
+
+udev (103-0ubuntu11) feisty; urgency=low
+
+  UdevDeviceMapper:
+  * Abolish rendezvous stuff which is full of deadlocks.
+
+ -- Ian Jackson <iwj@ubuntu.com>  Wed,  7 Feb 2007 16:35:58 +0000
+
+udev (103-0ubuntu10) feisty; urgency=low
+
+  * Fix syntax of Breaks field against differently-rendezvousing
+    libdevmapper.
+
+ -- Ian Jackson <iwj@ubuntu.com>  Wed,  7 Feb 2007 15:06:11 +0000
+
+udev (103-0ubuntu9) feisty; urgency=low
+
+  UdevDeviceMapper fixes:
+  * Lock and rendezvous is based on major/minor not name,
+    and rendezvous flag file is /lib/udev/.udev-device-mapper-rendezvous2.
+  * Rendezvous on all dm-* add and change events.
+
+ -- Ian Jackson <iwj@ubuntu.com>  Wed,  7 Feb 2007 14:57:28 +0000
+
+udev (103-0ubuntu8) feisty; urgency=low
+
+  UdevMdadm and fixes for UdevLvm/UdevDeviceMapper:
+  * On dm* and md* devices, scan on change as well as add.
+  * If devmap_name should fail, suppress the dm-* names since those
+    break LILO (!)
+  * Include devmap_name in the initramfs.
+
+ -- Ian Jackson <iwj@ubuntu.com>  Tue,  6 Feb 2007 22:06:19 +0000
+
+udev (103-0ubuntu7) feisty; urgency=low
+
+  UdevDeviceMapper:
+  * Process dm-* devices properly: we make the device nodes, using
+    dmsetup's devmap_name to tell us how.  (If we don't have devmap_name
+    the libdevmapper is too old, and is making the devices itself.)
+  * Rendezvous with libdevmapper, and advertise with the flag file
+    /lib/udev/.udev-device-mapper-rendezvous that we do so.
+  * Include watershed, and /var/run, in the initramfs.
+
+ -- Ian Jackson <iwj@ubuntu.com>  Tue,  6 Feb 2007 16:36:10 +0000
+
+udev (103-0ubuntu6) feisty; urgency=low
+
+  * New `watershed' utility, for use by UdevLvm et al.
+
+ -- Ian Jackson <iwj@ubuntu.com>  Fri, 26 Jan 2007 17:00:38 +0000
+
+udev (103-0ubuntu5) feisty; urgency=low
+  
+  * Don't issue uuid for whole disk partitions.
+
+ -- Fabio M. Di Nitto <fabbione@ubuntu.com>  Mon, 18 Dec 2006 11:10:05 -0800
+
+udev (103-0ubuntu4) feisty; urgency=low
+
+  * "pkill udevd" instead of "udev", otherwise we end up killing the
+    script we're running from, and don't move /dev into the real filesystem.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 24 Nov 2006 09:08:05 +0000
+
+udev (103-0ubuntu3) feisty; urgency=low
+
+  * Use SUBSYSTEMS!="scsi" instead of SUBSYSTEM!="scsi_device" when deciding
+    which sd_* module to load.  SCSI/SATA machines will boot again now.
+
+  * Replace DRIVER with DRIVERS where found.
+  * Remove the local-top initramfs script entirely, this was only loading
+    ide-generic.  For feisty we'll load pata_legacy for non-PCI IDE
+    controllers (which doesn't take over PCI interfaces) and provide an
+    option to force loading ata_generic for newer cards.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 23 Nov 2006 14:53:17 +0000
+
+udev (103-0ubuntu2) feisty; urgency=low
+
+  * ide-generic seems to be broken, it's claiming devices and then not
+    actually making block devices.  Disable for now, until I'm clear headed
+    enough to think about how to deal with this.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 23 Nov 2006 12:44:33 +0000
+
+udev (103-0ubuntu1) feisty; urgency=low
+
+  * New upstream release:
+    - %e enumeration removed.
+    - MODALIAS key and substitution removed.
+    - Most keys renamed (see RELEASE-NOTES).
+    - Direct writing to sysfs attributes now supported.
+
+  * Update patches:
+    - 40-udevtrigger-filters.patch: dropped, the spirit of this patch is
+      merged upstream and we don't need most of it anymore.
+    - 45-udevtrigger-sort.patch: dropped, merged upstream.
+    - 60-vol_id-swap.patch: dropped, merged upstream.
+    - 70-ifrename.patch: largely merged upstream, keep support for "eth*"
+      incrementing in 70-rename-netif-increment.patch.
+
+  * Simplify the initramfs handling somewhat.  We now just trigger
+    everything, and don't wait for things to settle; instead relying on the
+    loop in mountroot() which will do exactly the right thing,
+  * Use pkill instead of shell /proc iteration to kill udevd.  Ubuntu #65711.
+
+  * Drop most WAIT_FOR_SYSFS rules, increase kernel requirement to 2.6.19.
+  * Rework rules file to newer attributes and naming.  Drop some symlinks
+    where they are not part of devices.txt and no other distribution
+    supplies them.
+
+  * Rename libvolumeid0 and libvolumeid-dev to libvolume-id0 and
+    libvolume-id-dev to match Debian.
+  * Restore the "writing udev rules" documentation now that it's not wildly
+    inaccurate.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 23 Nov 2006 10:51:23 +0000
+
+udev (093-0ubuntu18) edgy; urgency=low
+
+  * Abort fstab migration if we encounter duplicate UUIDs.  Ubuntu: #64909.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 16 Oct 2006 12:16:16 +0100
+
+udev (093-0ubuntu17) edgy; urgency=low
+
+  * Actually pass the device name to readlink when checking for LVM
+    symlinks to /dev/mapper.  Ubuntu: #63626.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu,  5 Oct 2006 10:31:09 +0100
+
+udev (093-0ubuntu16) edgy; urgency=low
+
+  * Don't convert software RAID (/dev/md[0-9]*) devices to UUID as there's
+    something nasty in that woodshed.  Ubuntu: #62476.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 26 Sep 2006 17:17:05 +0100
+
+udev (093-0ubuntu15) edgy; urgency=low
+
+  * Adding missing $ for $LINE in volumeid.postinst.  Ubuntu: #59376
+  * Sort the device list before triggering events.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 14 Sep 2006 15:57:00 +0100
+
+udev (093-0ubuntu14) edgy; urgency=low
+
+  * Be gone foul devfs-emulation fiends from hell!
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 31 Aug 2006 16:09:09 +0100
+
+udev (093-0ubuntu13) edgy; urgency=low
+
+  * Make sure that net, pts and shm sub directories exist under
+    /lib/udev/devices in the package.  Ubuntu: #57436.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 23 Aug 2006 13:47:43 +0200
+
+udev (093-0ubuntu12) edgy; urgency=low
+
+  * Create /lib/udev/devices in udev.postinst so that the .deb can be
+    unpacked as non-root.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 23 Aug 2006 09:31:05 +0200
+
+udev (093-0ubuntu11) edgy; urgency=low
+
+  * Correct a bug in the previous release, forgot "then" after "if...;"
+  * Move libvolume_id.so into /lib
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 21 Aug 2006 17:08:45 +0200
+
+udev (093-0ubuntu10) edgy; urgency=low
+
+  * Add missing Replaces for volumeid on libvolumeid0 for when the latter
+    contained the binary.  (Ubuntu: #55003).
+
+  * Don't transition LVM, evms and dev-mapper devices in /etc/fstab
+    (Ubuntu: #54002).
+  * Don't repeat a transition while /etc/fstab.pre-uuid exists.
+    (Ubuntu: #54231).
+
+  * Create /dev/pilot symlinks for all Handspring devices.  (Ubuntu: #57004).
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 21 Aug 2006 09:30:55 +0200
+
+udev (093-0ubuntu9) edgy; urgency=low
+
+  * Add support for uswsusp
+
+ -- Matthew Garrett <mjg59@srcf.ucam.org>  Thu, 10 Aug 2006 19:36:44 +0100
+
+udev (093-0ubuntu8) edgy; urgency=low
+
+  * Statically link the copy of vol_id in the udeb, accidentally disabled
+    while testing.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 28 Jul 2006 00:05:10 +0100
+
+udev (093-0ubuntu7) edgy; urgency=low
+
+  * Change the libuuid1 dependency to a versioned dependency on e2fsprogs,
+    where the uuidgen binary has moved to.
+  * Move vol_id tool into its own binary package (volumeid) to allow for
+    SONAME transitions and multi-arch installation of libvolume_id0.
+    Move the UUID conversion in with it.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 25 Jul 2006 13:56:03 +0100
+
+udev (093-0ubuntu6) edgy; urgency=low
+
+  * Keep a copy of the old /etc/fstab as /etc/fstab.pre-uuid.
+  * Fix fstab conversion not to dump out all shell variables on encountering
+    a blank line.  Ubuntu: #53991.
+  * Fix IFS handling in fstab conversion to work if /bin/sh is bash.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Tue, 25 Jul 2006 10:29:04 +0100
+
+udev (093-0ubuntu5) edgy; urgency=low
+
+  * On upgrade, convert the /etc/fstab on the system to use UUID= instead
+    of block device paths wherever possible.  This makes the system far
+    more robust against hardware changes, including the impending
+    IDE-to-libata change.
+  * Add dependency on libuuid1, so we can call uuidgen during conversion
+    to add a UUID to an existing swap partition that was generated without
+    one.
+
+  * Place vol_id in the libvolumeid0 package, and in /sbin, so that it
+    can be used by other tools without depending on all of udev.
+  * Include README that has a handy table of which filesystems support
+    what.
+  * debian/patches/60-vol_id-swap.patch:
+    - allow vol_id to return UUID or LABEL (with -u or -l) even if the
+      usage isn't usually a filesystem; e.g. swap devices with UUIDs
+    - detect a swap partition with a swsusp signature, and extract the
+      information for the underlying swap
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 24 Jul 2006 22:44:22 +0100
+
+udev (093-0ubuntu4) edgy; urgency=low
+
+  [Fabio M. Di Nitto]
+  * Call dh_makeshlibs now we ship a shared library (libvolumeid0).
+
+  [Scott James Remnant]
+  * Group zaptel devices under /dev/zap.  Ubuntu: #50676.
+  * Correct typo (= -> ==) in 40-permissions.rules.  Ubuntu: #53431.
+  * Expand /dev/pilot rules to include all things beginning "Handspring Visor".
+    Ubuntu: #51760
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 20 Jul 2006 16:50:48 +0100
+
+udev (093-0ubuntu3) edgy; urgency=low
+
+  * Install path_id, missed because it got moved into a sub-directory.
+  * Correct typo in storage_enum.sh that broke the installer (disc -> disk).
+
+  * Restore to non-native source.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 13 Jul 2006 18:15:12 +0100
+
+udev (093-0ubuntu2) edgy; urgency=low
+
+  * Correct typo in postinst (my_persistent_disk_rules ->
+    mv_persistent_disk_rules)
+
+ -- Matt Zimmerman <mdz@ubuntu.com>  Thu, 15 Jun 2006 12:09:26 -0700
+
+udev (093-0ubuntu1) edgy; urgency=low
+
+  * New upstream release:
+    - libsysfs removed and replaced by simple helper functions
+    - Support /sys/class and /sys/block being symlinks into /sys/devices
+    - Programs no longer receive SUBSYSTEM as a parameter by default
+    - Rename persistent-disk.rules to persistent-storage.rules and support
+      tape devices.
+    - udevtrigger and udevsettle commands upstream that take on the job of
+      our own udevplug.
+    - Require that rules use "==" only for a match, and "=" for assignment.
+
+  * Rule changes:
+    - Include a README in /etc/udev/rules.d
+    - Wait for the ioerr_cnt attribute of scsi devices to appear
+    - Video card devices now named /dev/dri/card*
+    - IEEE1394 video devices now named /dev/dv1394/* and /dev/video1394/*
+    - Epson SCSI Processors are probably scanners too, Ubuntu: #45412.
+    - Places devices from the zaptel subsystem in the dialout group.
+    - Create /dev/pilot symlink for Handspring Visors too.  Ubuntu: #43279.
+    - Create persistent /dev/input/* symlinks for input devices.
+
+  * 01-lib-udev.patch:
+    - Mostly merged upstream, patch just stops the /sbin/scsi_id symlink
+      from being created.
+  * 10-selinux-include-udev-h.patch:
+    - Merged upstream.
+  * 20-sparc-sorcvbuffforce.patch:
+    - Merged upstream.
+  * 40-udevplug.patch:
+    - Reworked to apply to udevtrigger and renamed to
+      40-udevtrigger-filters.patch
+  * 75-format-run-rules-later.patch:
+    - Dropped, was upstream backport.
+  
+  * New libvolumeid0 package and libvolumeid-dev packages for developing
+    software that wishes to recognise volume information.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed,  7 Jun 2006 13:58:13 +0100
+
+udev (079-0ubuntu34) dapper; urgency=low
+
+  * Don't write the empty string to /proc/sys/kernel/hotplug if it doesn't
+    exist (ie. the kernel wasn't compiled with CONFIG_HOTPLUG).  We don't
+    use or need this for anything, we were just being tidy.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 22 May 2006 11:07:09 +0100
+
+udev (079-0ubuntu33) dapper; urgency=low
+
+  * Only attempt to rename network interfaces that have an associated
+    driver, e.g. not bridges and vlans.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 16 May 2006 17:24:50 +0100
+
+udev (079-0ubuntu32) dapper; urgency=low
+
+  * Add MINKVER="2.6.15" to our hook script, so mkinitramfs will refuse
+    to include our new udev in an old kernel's initramfs.  Depend on a
+    new enough version of initramfs-tools so that this hack works.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Tue, 16 May 2006 21:13:21 +1000
+
+udev (079-0ubuntu31) dapper; urgency=low
+
+  * Add vbi symlink for v4l* application that otherwise will complain about
+    it and makes the X world more happy (including the maintainer that can
+    watch^Wtest TV):
+    - Update debian/60-symlinks.rules.
+
+ -- Fabio M. Di Nitto <fabbione@ubuntu.com>  Fri, 12 May 2006 12:22:07 +0200
+
+udev (079-0ubuntu30) dapper; urgency=low
+
+  * Drop the /etc/iftab fixing code, there are just too many little problems
+    with doing this.  If after a breezy->dapper upgrade your network devices
+    are incorrectly named, fix /etc/iftab manually.  We'll work on a better
+    solution later.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon,  8 May 2006 14:17:26 +0100
+
+udev (079-0ubuntu29) dapper; urgency=low
+
+  * Add the address of any UP interface to /etc/iftab if not already
+    present to ensure they don't change names either.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri,  5 May 2006 18:08:22 +0100
+
+udev (079-0ubuntu28) dapper; urgency=low
+
+  * Ignore device-mapper devices and let LVM take care of creating them.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 28 Apr 2006 15:42:37 +0100
+
+udev (079-0ubuntu27) dapper; urgency=low
+
+  * Improve the iftab helper somewhat:
+    - add support for driver, bus and businfo selectors
+    - add support for any sysfs attribute with a SYSFS{...} selector
+  * On package upgrade fix any /etc/iftab entries that appear to be incorrect,
+    this is a rather simple fix but should work for the majority of people.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 24 Apr 2006 15:48:04 +0100
+
+udev (079-0ubuntu26) dapper; urgency=low
+
+  * Add missing conflicts on ifrename; all of the work done by that tool
+    is now performed by udev itself.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 19 Apr 2006 09:26:50 +0100
+
+udev (079-0ubuntu25) dapper; urgency=low
+
+  * Rework Andrey Borzenkov's patches applied to upstream udev into
+    75-format-run-rules-later.patch; this causes any formatting added to
+    RUN rules to be applied after the NAME has been changed, and fixes
+    Ubuntu: #38787.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 18 Apr 2006 08:47:14 +0100
+
+udev (079-0ubuntu24) dapper; urgency=low
+
+  * Fixed typo (PREREQS -> PREREQ) in initramfs hook, purely cosmetic
+    and didn't cause any problems.  Ubuntu: #36962.
+  * Provide /dev/video and /dev/radio symlinks for compatibility with
+    older software.  Ubuntu: #36860
+    - as with all /dev symlinks, there's no guarantee which device they'll
+      point to if you have multiple devices.  This is not considered a bug,
+      software should be modified to use HAL and present a list of available
+      devices rather than rely on symlinks.
+  * Changed udevplug to write "add" to the uevent file, instead of a silly
+    string; future kernel versions may support multiple commands.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon,  3 Apr 2006 16:23:37 +0100
+
+udev (079-0ubuntu23) dapper; urgency=low
+
+  * Install udev.initramfs-local into casper-premount so we get to see CD
+    drives, etc on the live CD.
+
+ -- Tollef Fog Heen <tfheen@ubuntu.com>  Mon, 27 Mar 2006 20:44:32 +0200
+
+udev (079-0ubuntu22) dapper; urgency=low
+
+  "He takes his food with a horrid zest,
+   he eats one half and he wears the rest!"
+  
+  * Split the initramfs script out even more, instead of a case statement
+    in init-premount move the module loading to local-top and nfs-top.
+    This fixes the long-standing bug where changing boot= on the kernel
+    command line has no effect.
+  * Drop the "|| true"s from usplash_write calls, infinity says they're
+    unnecessary.
+  * Actually load modules for intelligent devices like we say we do in the
+    comments.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 23 Mar 2006 17:44:13 +0000
+
+udev (079-0ubuntu21) dapper; urgency=low
+
+  * Split the loop-and-wait part of the initramfs script out; it'll
+    go in the initramfs local script itself.  Ubuntu: #36010
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 22 Mar 2006 15:33:12 +0000
+
+udev (079-0ubuntu20) dapper; urgency=low
+  
+  "I'm just the fastest thing you'll ever see.
+   That streak of lightning you just missed was me."
+
+  * Load ide-generic in all cases after loading PCI storage controller
+    drivers.  This reduces the complexity of the root filesystem mounting
+    to just a single path for both IDE and everything else and opens up to
+    using a UUID for everything.
+  * Set a global usplash timeout for the entire initramfs script.
+    Ubuntu: #35104.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 21 Mar 2006 19:47:49 +0000
+
+udev (079-0ubuntu19) dapper; urgency=low
+  
+  "For I am ordinary, unimportant, and undeserving of such attention."
+
+  * Place joysticks in the "plugdev" group, for programs that access the
+    joystick device directly and not through X.  Ubuntu: #33354.
+  * The storage device enumerator used by the installer was a bit too
+    efficient; it would generate new symlink names every time an add event
+    for a device was received.  The installer causes many add events to occur,
+    each time hw-detect and the partitioner is run.  Fix the script to
+    return an existing symlink name if one exists in the udevdb.
+    Ubuntu: #27926.
+  * Fix iftab_helper segmentation fault when /etc/iftab doesn't exist,
+    caused by returning NULL rather than the suggested name; now returns
+    whatever name the kernel gave.  Ubuntu: #34078.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 15 Mar 2006 18:28:39 +0000
+
+udev (079-0ubuntu18) dapper; urgency=low
+  
+  "Just a little change;  Small, to say the least;
+   Both a little scared;  Neither one prepared."
+
+  * Fix ide_media helper to construct IDE device names above 'hdf'
+    properly.  Ubuntu: #32679.
+  * Hard-code the location of usplash_write and call directly, as
+    we don't have "type" in busybox.  This corrects usplash timing out
+    early while waiting for SCSI root filesystem to show up.  Ubuntu: #28357.
+  * Set the all_partitions options for removable IOMEGA_ZIP* devices.
+    Ubuntu: #27752.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu,  2 Mar 2006 13:36:49 +0100
+
+udev (079-0ubuntu17) dapper; urgency=low
+  
+  "The greatest thing you'll ever learn, is just to be loved, and be loved
+   in return."
+
+  * Fix build failure caused by accidental double-inclusion of the 
+    SORECVBUFFORCE patch.
+  
+  * As the ifrename patch generally seems to be working, drop the "_clashed"
+    moniker and instead just use the next free interface number available to
+    us.  So instead of eth0_clashed, you'll see e.g. eth2 now.  If you wanted
+    it as eth0, you need to change your /etc/iftab file.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed,  1 Mar 2006 13:06:47 +0100
+
+udev (079-0ubuntu16) dapper; urgency=low
+
+  "You better shape up, 'cause I need a man, and my heart is set on you."
+
+  * Define the SORECVBUFFORCE socket option correctly on Sparc (and other
+    ancient platforms).
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed,  1 Mar 2006 11:23:41 +0100
+
+udev (079-0ubuntu15) dapper; urgency=low
+
+  "Rembrandts!  El Grecos!  Toulouse-Letrec-os!
+   Painted last week on the banks of the Thames!"
+
+  * We also need to "catch up" events of the scsi_device, usb_device and
+    usb_host classes just in case the user compiled things into their kernel
+    or put their SATA driver into /etc/mkinitramfs/modules (yes, you,
+    crispin).
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 27 Feb 2006 14:05:25 +0100
+
+udev (079-0ubuntu14) dapper; urgency=low
+
+  "With tuppence for paper and strings, you can have your own set of wings."
+
+  * Log the results of performing the udevplug to /dev/.udev.log by using
+    udevmonitor.  This log file will be moved to /var/log/udev later in the
+    boot sequence.  Note that this won't work if /usr is on a separate
+    filesystem because of the location of udevmonitor, but that's a small
+    loss.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 21 Feb 2006 16:22:33 +0000
+
+udev (079-0ubuntu13) dapper; urgency=low
+
+  "But when I'm way up here, it's crystal clear;
+   That now i'm in a whole new world."
+
+  * Remove the blanket loading of ide-generic after any IDE device, by
+    this time they should have been claimed by a driver already.  I kept
+    this around for historical reasons, but it breaks people with multiple
+    IDE controllers in their machine (hi, Fabio!).  If this causes new bugs,
+    it can go back in.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 20 Feb 2006 11:01:23 +0000
+
+udev (079-0ubuntu12) dapper; urgency=low
+  
+  "Should we blame the government?  Or blame society?
+   Or should we blame the images on TV?  No, Blame Canada!"
+
+  * Drink coffee.
+  * Read 80-extras-iftab_helper.patch again.
+  * Stare in disbelief.
+  * Drink more coffee.
+  * Add "&& !found" to the "rename to clashed" if condition.
+  * Close bug #31188.
+  * Hide in shame.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 14 Feb 2006 11:28:17 +0000
+
+udev (079-0ubuntu11) dapper; urgency=low
+  
+  "How do you document real life when real life's getting more like
+   fiction each day?
+
+  * More updates to ifrename support:
+    - iftab_helper now supports the common "mac" selector, used to
+      distinguish different interfaces created by the same driver.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 13 Feb 2006 21:19:19 +0000
+
+udev (079-0ubuntu10) dapper; urgency=low
+  
+  "Near, far, in our motor car;  Oh what a happy time we'll spend."
+
+  * Fixes to a couple of think-os in the previous ifrename patch:
+    - after renaming to the temporary interface name, make sure we copy
+      that into ifr_name otherwise we'll be trying to rename the interface
+      we've just renamed.  Ubuntu #31040.
+    - use "OLDNAME_ifrename" as the temporary name rather than "__NEWNAME"
+      to avoid clashes and just generally make it more obvious.
+    - use "NAME_clashed" as the iftab clash name rather than "_NAME" to make
+      it more obvious
+    - don't write an initial /etc/iftab on install or upgrade; leave it to
+      the installer.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 10 Feb 2006 14:37:02 +0000
+
+udev (079-0ubuntu9) dapper; urgency=low
+  
+  "Dancing freaks and sycophants, Westwood heels and shoulder pads."
+
+  * Rework the initramfs premount script a little to try and make the root
+    filesystem order a little more predictable.  In particular make sure we
+    don't load USB/firewire/etc. drivers until we've loaded IDE and SCSI
+    drivers otherwise sda could be won by a fast USB key over your SATA
+    root filesystem.  Ubuntu #28150, #30418.
+  
+  * Include support for renaming of network interfaces.  This is done with
+    a new iftab_helper that can parse a subset of the ifrename /etc/iftab
+    file and return the expected name of the network interface.  This is
+    called from a udev rule that uses the internal support for network
+    interface renaming.  Interface swapping is supported both by renaming
+    network interfaces that would clash with one specified in the file and
+    by waiting for an interface name to become free in udev itself.
+    Ubuntu: #7050, #30240.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu,  9 Feb 2006 22:04:10 +0000
+
+udev (079-0ubuntu8) dapper; urgency=low
+
+  "Forget about your algebra and calculus, You can always do your homework
+   on the morning bus."
+
+  * Change the udev message to "Loading hardware drivers" to stop people
+    thinking this does any kind of hardware detection, which it doesn't.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue,  7 Feb 2006 11:12:09 +0000
+
+udev (079-0ubuntu7) dapper; urgency=low
+
+  "And someday when you're old and bent, Think of those you might have spent,
+   With a bad, bad man!"
+
+  * Include 65-persistent-disk.rules and helpers in the udeb so the
+    installer can use /dev/disk/by-*.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Sat,  4 Feb 2006 11:32:54 +0000
+
+udev (079-0ubuntu6) dapper; urgency=low
+
+  "Some little token of esteem is needed, like a dish of cream."
+
+  * Don't check whether a device is claimed by an already loaded driver,
+    while clever and theoretically time-saving it turns out that various
+    forms of devices can be claimed by multiple drivers
+    Ubuntu #28654, #30377.
+  * Load mmc_block when an mmc device is inserted; will improve once
+    we get a way to determine exactly which mmc sub-module we need, but
+    this will give us out-of-the-box SD/MMC card support for now.
+  * Also load i2o_block for all i2o devices, again this is a temporary
+    workaround for a bad kernel subsystem.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri,  3 Feb 2006 17:50:19 +0000
+
+udev (079-0ubuntu5) dapper; urgency=low
+
+  "We was full of hope, until I got addicted to crack and dope!"
+
+  * Switch back to using "cp -a -f" in the init script and installer
+    startup; that works fine with busybox and with our patched coreutils.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu,  2 Feb 2006 09:52:00 +0000
+
+udev (079-0ubuntu4) dapper; urgency=low
+
+  "May I return to the beginning? The light is dimming, and the dream is too"
+
+  * Remove the /dev/.udev/queue directory at the bottom of the initramfs
+    just in case we killed udevd while it was in the middle of something.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Sat, 28 Jan 2006 16:08:08 +0000
+
+udev (079-0ubuntu3) dapper; urgency=low
+
+  "There's gonna be a quiz at your ascension, not to mention any
+   threat of hell."
+
+  * Wait time for SCSI devices should be 30 seconds, not 3 seconds.
+    Accidentally broken while fixing usplash timeouts.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 10 Jan 2006 10:54:42 +0000
+
+udev (079-0ubuntu2) dapper; urgency=low
+
+  "I'm brushing up on looking down."
+
+  * Probe for PCI, ISA, PCMCIA, etc. brides, USB and Firewire controllers
+    and docking stations during initramfs, to support more distant root disks.
+  * Also probe for input devices so when it all goes wrong, you can use that
+    USB keyboard to fix it.
+
+  * Build the udeb separately without SELinux support, as that's not
+    required during the installer.
+  * Don't allow usplash to timeout while we run udevplug in the init script
+    or while we wait for SCSI devices to get out of bed.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri,  6 Jan 2006 10:10:01 +0000
+
+udev (079-0ubuntu1) dapper; urgency=low
+  
+  "You know, some guys just can't hold their arsenic."
+
+  * New upstream release:
+    - %e (enumerate) in rules has been deprecated.
+    - event environment now lists symlinks to device in DEVLINKS variable
+    - device-mapper support for persistent disk rules
+  * Dropped 10-udev-conf.patch, now included upstream.
+  * Dropped 02-no-sepol.patch, as we now depend on that.
+  * Added 10-selinux-include-udev-h.patch to fix build failure with selinux.
+  * Increased versioned dependency on libselinux1-dev to that which includes
+    matchpathcon_init_prefix.
+
+  * Fixed dvb device naming to create correct format names, bugs in both
+    udev rules to match the device and program to generate the right names.
+    Ubuntu #20874.
+  * Fixed a bug in udevplug that caused it to wait for an event to complete
+    that it never tickled.  Ubuntu #20943.
+  * Included firmware loading in the udeb so network cards needing firmware
+    will work in the installer.  Ubuntu #20993
+  * Plug devices in serial during the initramfs, provides a little more
+    predictability of device names of the root filesystem.
+
+  * Rule changes:
+    - wait for the address attribute of network devices to appear in sysfs
+      before processing.
+      Rationale: solves race not yet fixed in kernel.
+    - dropped %e from symlink rules; this means you will only have one
+      /dev/cdrom symlink no matter how many devices you have - and it isn't
+      necessarily predictable which one it is.  Software should use HAL or
+      similar to present "human names" for devices, and sysadmins should
+      use the /dev/disk/* names.
+      Rationale: upstream.
+    - /etc/udev/rules.d/65-persistent.rules renamed to 65-persistent-disk.rules
+      Rationale: upstream.
+    - place /dev/nvram in the nvram group.
+      Rationale: Ubuntu #21571 and breezy.
+    - load sg module for all SCSI devices.
+      Rationale: Ubuntu #12434, SuSE rules.
+    - place SCSI processors (SYSFS{type}==3) from HP in the scanner group.
+      Rationale: Ubuntu #12434.
+    - change permissions of removable devices (floppies, usb, ieee1394, etc.)
+      to 0660 (the default) instead of overriding it down to 0640.
+      Rationale: allows formatting of the media, and the groups are intended
+      to imply physical access anyway.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed,  4 Jan 2006 07:58:45 +0000
+
+udev (077-0ubuntu5) dapper; urgency=low
+
+  "And if you're lucky, then the god's a she."
+  
+  * Spell firewire correctly (with the extra e).
+  * Spell midi correctly.
+  * Remove strange "0" floating in the IDE device permissions rules.
+  * Explicitly state cdrom modes as 0660 in case they've been dropped to
+    0640 because they're removable.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 12 Dec 2005 13:05:53 +0000
+
+udev (077-0ubuntu4) dapper; urgency=low
+  
+  "Looks like you're not happy 'less I open a vein."
+
+  * Drop -x from initramfs premount script, was there for debugging while
+    it was new and shiny.
+  * Include the general functions in the initramfs script, so we get
+    log_begin_msg/log_end_msg, which we use to notify that we're hanging
+    around for a while.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu,  8 Dec 2005 02:19:11 +0000
+
+udev (077-0ubuntu3) dapper; urgency=low
+
+  "Watch out, Europe ... We're going on tour!"
+  
+  * Include udevinfo and udevmonitor in the udeb for installer debugging.
+  * Rework the initramfs premount script.  Instead of trying to do the same
+    steps for everything, take different paths depending on the values of
+    $BOOT and $ROOT.
+    - BOOT=nfs means we only load network card drivers.
+    - BOOT=local means we look at ROOT, if it's an ide device we might need
+      to load ide-generic if probing the bus doesn't create it; if it's a
+      scsi or sata device we might need to wait around for a bit for the
+      device to appear
+  * Load ide-generic if not already loaded when an ide device is detected.
+
+  * Rule changes:
+    - Change group of USB and IEEE1394 block devices to plugdev and change
+      permissions to 0640.
+      Rationale: pmount/g-v-m/hal needs them in this group to work.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed,  7 Dec 2005 18:15:21 +0000
+
+udev (077-0ubuntu2) dapper; urgency=low
+  
+  "I'm so hot, hot to trot; I can hardly wait to show them what I got."
+
+  * Turns out busybox doesn't have "cp -au", go back to "-af".
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue,  6 Dec 2005 20:36:25 +0000
+
+udev (077-0ubuntu1) dapper; urgency=low
+
+  "I think dynamic tension must be awfully hard work"
+  
+  * New upstream release:
+    - no longer marks an event as failed when ignore_device is used
+    - skipping of events with SEQNUM moved to udevsend
+    - automatically prefix relative program paths with /lib/udev
+  
+  * Copy devices from /lib/udev/devices using plain-old cp, rather than
+    find and cpio; find is in /usr.
+  * Update installer startup script to use "cp -au" like the init script,
+    instead of "cp -af".
+  * Add /lib/udev/devices/kmem as there's no sysfs node for it yet.
+  * Mount udev with mode 0755 in cases of no initramfs.
+  * Explain to debhelper that we like the /lib/udev/devices permissions the
+    way they are.
+  
+  * Rule changes:
+    - Rename /dev/sr* to /dev/scd*, providing old name as symlink.
+      Rationale: LANANA.  Ubuntu #20312.
+    - Rename USB printers to /dev/usblp*.
+      Rationale: expectation in cupsys source, avoids conflict with lp.
+    - Rename device-mapper targets to /dev/dm/*.
+      Rationale: names we used in breezy.
+    - Change /dev/pilot symlink to be enumerated.
+      Rationale: some people have multiple Palm Pilots (yes, really).
+    - Add /dev/input/aiptektablet enumerated symlink to event device.
+      Rationale: used in xorg.conf.  Ubuntu #18358.
+    - Add permissions and symlinks for ltmodem /dev/ttyLTM* devices.
+      Rationale: included in linux-restricted-modules.
+    - Add enumerated /dev/cdrw, /dev/dvd and /dev/dvdrw symlinks.
+      Rationale: appeared in breezy.
+    - Left /dev/urandom permissions as 0666, despite being 0444 in breezy.
+      Rationale: same write function as /dev/random.  Debian #332970.
+
+  * Drop has_driver helper, instead just check ENV{PHYSDEVDRIVER}.
+  * Directly use the upstream persisent rules, so we keep up with changes
+    without having to copy them into the debian/rules.d directory.
+  * Remove /lib/udev/ prefix from all program rules, and let udevd add it.
+  
+  * Replace devfs rules with a simple helper that atomically enumerates
+    storage devices and allows us to produce the devfs-style /dev/discs,
+    /dev/cdroms and /dev/floppy directories that the installer still uses.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue,  6 Dec 2005 14:26:09 +0000
+
+udev (076-0ubuntu5) dapper; urgency=low
+  
+  "I played Norway, my fjords were stunning!"
+
+  * Load modules for all storage controllers in initramfs, not just IDE
+    and SCSI; some SATA controllers identify themselves as RAID.
+  * Load modules for network controllers in initramfs.
+  * Call modprobe super-quiet and with blacklist support when loading
+    ide-generic.
+
+  * Add -b (block devices) and -c (class devices) options to udevplug that
+    follow the right numbers of symlinks.
+  * Add -v (verbose) to udevplug for easier debugging.
+  * Dereference /sys symlinks given to udevplug directly.
+  
+  * Added debian/patches/55-run-program.patch which stops udevd declaring
+    that the sky is falling just because a program can't be found, it'll
+    output a warning (normally muted) and can be replayed later with
+    udevplug -F
+
+  * Fix pnp_modules which was generating device aliases, instead of device
+    ids that we can pass to modprobe.
+  
+  * Fix a few bugs in the init script that prevented udev from being started
+    on systems without initramfs, or after it was stopped.
+  * Include null in /lib/udev/devices by default.
+  * Simplify the udev.installer-startup script, the installer itself will
+    take care of much of the heavy mountpoint lifting.
+  * Include udev.conf in the udeb.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu,  1 Dec 2005 11:38:34 +0000
+
+udev (076-0ubuntu4) dapper; urgency=low
+
+  * Allow udevplug to follow symlinks in various circumstances, such as
+    when enumerating a bus or class heirarchy (mostly future compatibility,
+    but useful today).
+  * Correct a silly error in the udevplug manpage.
+  * Use -Cmem -Cmisc -Ctty -Cvc in initramfs script to ensure we follow
+    symlinks properly.
+  * Depend on the version of module-init-tools that actually supports
+    modprobe -Q.
+  * Guard notify-reboot-required call for minimal systems.
+  * Fix uninitialised variable in vio_type.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu,  1 Dec 2005 01:06:49 +0000
+
+udev (076-0ubuntu3) dapper; urgency=low
+
+  * Add debian/patches/01-no-sepol.patch to avoid inclusion of libsepol1
+    in main, it doesn't appear to be used.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 30 Nov 2005 20:18:54 +0000
+
+udev (076-0ubuntu2) dapper; urgency=low
+
+  "Robin Hood, what a crook; gave away, what he took"
+
+  * Recurse the /sys tree directly it udevplug rather than trying to use
+    libsysfs to encapsulate it; it just doesn't really work (why /dev/tty
+    didn't get updated permissions).
+  * Include the modprobe rules in the udeb.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 30 Nov 2005 19:25:14 +0000
+
+udev (076-0ubuntu1) dapper; urgency=low
+  
+  "There's nothing we can't face ... except for bunnies!"
+
+  * New upstream release:
+    - udev daemon is now run on startup, rather than first event
+    - events are received exclusively over the netlink socket, you should
+      leave /proc/sys/kernel/hotplug empty from now on.
+    - events with a TIMEOUT are now processed immediately
+    - disks can now be accessed through /dev/disk/by-label/ and
+      /dev/disk/by-uuid/ if you know what disk you're looking for, but not
+      what kernel-assigned name it has.
+    - device nodes with default name and no symlink are no longer stored in
+      the udevdb.
+    - the "udev_db" option has been removed, and the udevdb moved to
+      /dev/.udev/db
+    - when there are queued events, /dev/.udev/queue will exist and contain
+      symlinks to the appropriate /sys paths for each event
+    - exit status of programs called by RUN rules is now tracked
+    - if an event fails, /dev/.udev/failed will exist and contain symlinks
+      to the appropriate /sys paths; this can be used to replay failed events
+      later
+    - rules with NAME="" will cause no device node to be created, but RUN
+      keys will still be run.  Use OPTION "ignore_device" to completely
+      ignore an event.
+    - added WAIT_FOR_SYSFS="<attribute>" key to rule syntax, all built-in
+      logic to work around timing has been removed and instead this rule
+      should be used where necessary
+    - syntax to test for existance of environment variable changed from
+      ENV{KEY}=="*" to ENV{KEY}=="?*"
+    - communication with daemons such as hal can now be done using sockets,
+      use RUN+="socket:/org/freedesktop/hal/udev_event"
+
+  * Repackaged for Ubuntu, we have sufficiently far digressed from Debian,
+    especially in dealing with users trying to break their system, that
+    it makes sense to just maintain our own package now.  Ironically this
+    makes it easier to send patches back as we don't have to strip out the
+    "back out stuff" hunks first.
+  * Completely replaces the functionality of the hotplug package, which will
+    be removed by installing this.  If you had custom /etc/hotplug.d or
+    /etc/dev.d scripts, you will need to update those to be called by a udev
+    rule in /etc/udev/rules.d/8?-*.rules
+  * Depends on grepmap directly for the last remaining subsystems that don't
+    produce MODALIAS variables, rather than indirectly using the old hotplug
+    agents.
+  * Provides its own initramfs-tools hook and scripts, replacing the /dev
+    functionality that used to be built into it.
+
+  * The plain udev binary and udevstart are no longer shipped; all events are
+    received over the netlink socket by udevd and processed internally.  The
+    general functionality of udevstart has been replaced by udevplug.
+  * /etc/udev/links.conf is gone and instead replaced by the /lib/udev/devices
+    directory.  If you need any extra device nodes, symlinks or placed in
+    /dev on boot just place them here; they're copied over when the system
+    starts.
+  * The udev_root and udev_rules config options have been removed, if you
+    really want to change these, you can; but beware that you'll need to
+    change a lot of other things too -- they were just too difficult to
+    reliably support when combined with initramfs.
+  * All scripts removed from /etc/udev/scripts, instead replacements (often
+    binaries for speed) are shipped in /lib/udev; you can replace them by
+    adding your own and adjusting the rules.
+
+  * All rules are now placed directly in /etc/udev/rules.d, rather than
+    symlinking them in.
+  * All of the default rules have been replaced with new rules; if you had
+    modified the old ones they will be disabled but left in /etc/udev for
+    you (with a .dpkg-bak name).  You'll need to update your rules for the
+    new system, and place them in a new /etc/udev/rules.d/50-*.rules file.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Tue, 22 Nov 2005 08:29:24 +0000
+
+udev (0.060-1ubuntu15) breezy; urgency=low
+
+  * The kernel's input subsystem still hasn't been updated to use the new
+    driver core and is still running /proc/sys/kernel/hotplug (udevsend)
+    itself with a hand-constructed environment, rather than attaching data
+    to the sysfs event.
+
+    These hand-constructed events are missing the DEVPATH= variable which
+    udev requires before processing its rules.
+
+    Added debian/patches/hotplug_input_events which instead of ignoring these
+    events catches those from the input subsystem and processes them by
+    running /sbin/udev_run_hotplugd; effectively passing all responsibility
+    to the old hotplug input.agent which still can deal with them.
+
+    In the long-term, the kernel will be updated to use the driver core
+    (there are patches starting to be floated now) and attach its
+    information to the sysfs event, so this hack can go when that happens.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 23 Sep 2005 23:31:23 +0100
+
+udev (0.060-1ubuntu14) breezy; urgency=low
+
+  * Well, that didn't work so well now, did it folks?
+
+    Looks like good old Mr Kernel is _only_ sending some events down the
+    netlink socket, and we really don't want to be ignoring them.
+
+    Revert the ubuntu13 change, and instead start udevd manually at
+    S04udev.  This isn't as much of a hack as it first appears, because
+    once /proc/sys/kernel/hotplug goes away we'll need to do this anyway.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 21 Sep 2005 12:40:40 +0100
+
+udev (0.060-1ubuntu13) breezy; urgency=low
+
+  * Disable receipt of hotplug events via the netlink socket, there are
+    race conditions at early boot time where we can end up ignoring
+    udevsend events for netlink events we've already missed.  This
+    particularly affected /dev/input/mice.  (Ubuntu #12915).
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 21 Sep 2005 03:45:49 +0100
+
+udev (0.060-1ubuntu12) breezy; urgency=low
+
+  * extra/permissions.rules: Reorder change from previous version so that
+    CD-ROMs keep cdrom/0660 instead of plugdev/0640. (Ubuntu #15098)
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 12 Sep 2005 10:12:54 +0200
+
+udev (0.060-1ubuntu11) breezy; urgency=low
+
+  * extra/permissions.rules: Assign group plugdev to removable IDE drives to
+    make CF card readers and the like work. (Ubuntu #14495)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri,  9 Sep 2005 15:45:26 +0200
+
+udev (0.060-1ubuntu10) breezy; urgency=low
+
+  * debian/udev.init: Cope with a /dev tmpfs already being present.
+    (Ubuntu #14226)
+    Always make sure $udev_root/.udevdb is around
+    (Ubuntu #12915)
+
+ -- Jeff Bailey <jbailey@ubuntu.com>  Mon, 29 Aug 2005 22:43:55 -0400
+
+udev (0.060-1ubuntu9) breezy; urgency=low
+
+  * debian/udev.init: Fix links.conf path check. (Ubuntu #14281)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 29 Aug 2005 09:39:49 +0200
+
+udev (0.060-1ubuntu8) breezy; urgency=low
+
+  * extra/permissions.rules: When calling removable.sh, additionally scan usb
+    and ieee1394 buses since sometimes the kernel does not regard those as
+    removable. (Ubuntu #14063)
+  * extra/removable.sh: Remove the quoting in the 'for bus in "$SCAN_BUS"'
+    loop to make the loop actually work.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 25 Aug 2005 14:38:08 +0200
+
+udev (0.060-1ubuntu7) breezy; urgency=low
+
+  * Fix typo in udev.rules that prevented the /dev/pilot symlink from
+    appearing.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 25 Aug 2005 01:08:59 +0100
+
+udev (0.060-1ubuntu6) breezy; urgency=low
+
+  * debian/rules: Ship /etc/udev/scripts/removable.sh again, the absence of
+    this broke automounting on half the machines out there. (Ubuntu #13520)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 16 Aug 2005 22:49:26 +0200
+
+udev (0.060-1ubuntu5) breezy; urgency=low
+
+  * Add compatibility /dev/js[0-9]* symlinks for old software that
+    don't yet look for /dev/input/js[0-9]*.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 15 Aug 2005 17:41:43 +0100
+
+udev (0.060-1ubuntu4) breezy; urgency=low
+
+  * Avoid sed /I regex flag in cdsymlinks.sh, which is a GNU extension.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 10 Aug 2005 22:07:17 +0100
+
+udev (0.060-1ubuntu3) breezy; urgency=low
+
+  * Add ide-model.sh to the udeb.
+  * Add z50_run.rules to the udeb, to terminate tty device processing.
+  * Add z70_hotplugd.rules and helpers to the udeb, for /etc/dev.d and
+    /etc/hotplug.d compatibility.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri,  5 Aug 2005 12:47:57 +0100
+
+udev (0.060-1ubuntu2) breezy; urgency=low
+
+  * Disable SELinux support in the udeb build.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 13 Jul 2005 16:46:19 +0100
+
+udev (0.060-1ubuntu1) breezy; urgency=low
+
+  * Resynchronise with Debian.
+
+  * Prune 1394 rules, they are now part of 2.6.12 and udev upstream.
+
+  * Redo the permissions.rules patch.  The syntax changed slightly.
+     - Drop USB printer hackery, supported correctly with new kernel/udev
+       combo.
+
+ -- Jeff Bailey <jbailey@ubuntu.com>  Fri,  8 Jul 2005 03:13:25 +0000
+
+udev (0.060-1) unstable; urgency=low
+
+  * New upstream release. (Closes: #310960, #316478)
+  * Priority raised to optional.
+  * Enabled SELinux support.
+  * Added rules for ieee1394 devices.
+
+ -- Marco d'Itri <md@linux.it>  Sun,  3 Jul 2005 18:59:19 +0200
+
+udev (0.056-3) unstable; urgency=high
+ 
+  * Use group lp for USB printers. (Closes: #309091)
+  * Use group dialout for sl-modem devices. (Closes: #308488)
+  * Fix support for more than 9 partitions in removable.sh. (Closes: #306400)
+  * Mount the tmpfs from "tmpfs" instead of "none". (Closes: #307199)
+ 
+ -- Marco d'Itri <md@linux.it>  Sun, 29 May 2005 19:29:30 +0200
+
+udev (0.056-2ubuntu2) breezy; urgency=low
+
+  * Make sure that USB printers have group 'lp' (Ubuntu #10004)
+
+ -- Jeff Bailey <jbailey@ubuntu.com>  Fri,  6 May 2005 15:45:26 -0400
+
+udev (0.056-2ubuntu1) breezy; urgency=low
+
+  * Updated to new Debian version, reapplied Ubuntu changes manually; there
+    were too many changes and diversions. (#9688)
+  * Manually re-LSB'ified init script.
+  * debian/rules: Fix udeb generation.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 15 Apr 2005 15:17:10 +0200
+
+udev (0.056-2) unstable; urgency=medium
+
+  * Made the init script not fail if links.conf does not exist.
+    (Closes: #301525)
+  * Added RELEASE-NOTES to the documentation. (Closes: #301766)
+  * devfs.rules, udev.rules: fixed the ZIP drives hack. (Closes: #303133)
+  * Added patch add_firmwares_timeout: workaround for kernels with no
+    TIMEOUT support, which break the firmware events of some drivers.
+    (Closes: #302990)
+  * Moved all permissions-related rules to permissions.rules, installed
+    by default on upgrade.
+
+ -- Marco d'Itri <md@linux.it>  Sat,  9 Apr 2005 14:44:10 +0200
+
+udev (0.056-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Improve warn_if_interactive() in the init script. (Closes: #299827)
+  * Stop adding by default /dev/.static/dev/ to mtab to silence df.
+    (Closes: #300435)
+  * Use /etc/udev/ instead of /tmp/ as the temporary mount point in
+    the init script. (Closes: #300705)
+
+ -- Marco d'Itri <md@linux.it>  Mon, 21 Mar 2005 14:56:51 +0100
+
+udev (0.054-3) unstable; urgency=high
+
+  * Do not use udevsend as the hotplug multiplexer on kernels < 2.6.10
+    because they generate out of order hotplug events.
+  * Use /dev/.static/dev/ instead of /.dev/ to keep the root clean and
+    to not leave around devices with possibly insecure permissions.
+    This requires raising the versioned dependency on makedev to 2.3.1-77.
+    (Closes: #294968)
+  * Added upstream patch udev-segfault-DRIVER.patch to fix a segfault when
+    matching a non-initialized DRIVER. (Closes: #298192)
+  * devfs.rules, udev.rules: added the AOE character devices.
+
+ -- Marco d'Itri <md@linux.it>  Tue, 15 Mar 2005 11:55:38 +0100
+
+udev (0.054-2) unstable; urgency=high
+
+  * udev.rules: fixed the device name for raw parport devices.
+  * devfs.rules, udev.rules: try a different approach to setting permissions
+    for SCSI devices, by checking SYSFS{type}. Also detect sg devices used
+    by scanners and use the scanner group. (Closes: #297755)
+
+ -- Marco d'Itri <md@linux.it>  Sat,  5 Mar 2005 14:50:29 +0100
+
+udev (0.054-1) unstable; urgency=high
+
+  * New upstream release.
+  * Fix postinst to run udevstart on the right directory at install time.
+    (Closes: #296776, #296975)
+  * Use udevsend as the hotplug multiplexer and depend on hotplug
+    >= 0.0.20040329-17 to be sure that it will not be changed back by
+    its init script.
+  * Raised the tmpfs default size to 10 MB, because Alpha has 8 KB pages.
+    (Closes: #295087)
+  * Added raid-devfs.sh to udev-udeb. (Closes: #295634)
+  * devfs.rules, udev.rules: set group lp for raw parport and USB printer
+    devices. (Closes: #296256, #296276)
+  * Added an ide-model.sh init script to deal with partitions of Zip drives.
+    (Closes: #295369)
+
+ -- Marco d'Itri <md@linux.it>  Sat, 26 Feb 2005 13:41:16 +0100
+
+udev (0.053-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Removed patches cdsymlinks_numeric (merged upstream) and scsi_id_tmp
+    (not needed anymore).
+  * Added some documentation to the init script for the benefit of people
+    who run commands without understanding their consequences. With the
+    same rationale, added some code which prints a scary message if the
+    script is started from an interactive shell.
+  * Added to the init script a check for the $UDEV_DISABLED variable,
+    which may be set on the kernel command line to easily disable udev.
+  * Do not start udev from postinst when installing in a chroot.
+  * Added to postinst yet another check for missing tmpfs. (Closes: #294575)
+  * CAPI devices now are owned by group dialout, per policy.
+  * Documented in README.Debian that the md RAID devices may not work.
+  * Updated the cdsymlinks script with a patch from the author.
+
+ -- Marco d'Itri <md@linux.it>  Sat, 12 Feb 2005 19:39:53 +0100
+
+udev (0.051-1) unstable; urgency=low
+
+  * New upstream release.
+  * Removed patch ignore_tmpfs_size_option, not needed anymore.
+  * Updated the rules files to include permissions.
+    The permissions files do not exist anymore.
+  * devfs.rules, udev.rules: added infiniband/* devices. (Closes: #293493)
+  * Fixed the Iomega ZIP rule. (See #289525)
+  * Stop creating dummy /dev/.udev.tdb.
+
+ -- Marco d'Itri <md@linux.it>  Sat,  5 Feb 2005 13:36:15 +0100
+
+udev (0.050-6) unstable; urgency=high
+
+  * Do not check the kernel version in preinst if udev is not already
+    active. (Closes: #292829)
+
+ -- Marco d'Itri <md@linux.it>  Sun, 30 Jan 2005 18:10:16 +0100
+
+udev (0.050-5) unstable; urgency=high
+
+  * Fixed broken upgrade test in postinst enable_udev(). (Closes: #290968)
+  * compat.rules: fixed the fix for #288932. (Closes: #289505)
+  * devfs.rules, udev.rules: added the all_partitions workaround for
+    ZIP drives. (Closes: #289525)
+
+ -- Marco d'Itri <md@linux.it>  Tue, 18 Jan 2005 18:39:54 +0100
+
+udev (0.050-4) unstable; urgency=high
+
+  * Create /dev/shm/ in postinst, because it may be missing on systems
+    which had devfs installed.
+  * Improved the code in postinst which determines the naming scheme to
+    detect devfs-like names on non-devfs systems. (Closes: #288308)
+  * Improved enable_udev() in postinst to make sure that it does not try
+    to mount a second tmpfs when upgrading from pre-.udevdb releases.
+    (Closes: #288775)
+  * compat.rules: create symlinks also for secondary audio, dsp and
+    mixer devices. (Closes: #288932)
+  * cdsymlinks.sh: fixed the NUMBERED_LINKS=0 case. (Closes: #288635)
+
+ -- Marco d'Itri <md@linux.it>  Fri,  7 Jan 2005 12:09:04 +0100
+
+udev (0.050-3ubuntu7) hoary; urgency=low
+
+  * extra/links.conf: Add raw1394, video1394 and video1394/0 ...
+  * extra/udev.permissions: ... and to here.
+
+  * debian/udev.init: Set permissions on links created through 
+    links.conf.
+
+  Should provide the bare minimum /dev entries to get ieee1394 to
+  work.
+
+  (Ubuntu BZ#3609)
+
+ -- Jeff Bailey <jbailey@ubuntu.com>  Tue, 29 Mar 2005 00:47:56 -0500
+
+udev (0.050-3ubuntu6) hoary; urgency=low
+
+  * debian/udev.preinst: Handle conffile move without dpkg questions. 
+    (Ubuntu #4973)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 18 Mar 2005 14:50:43 +0100
+
+udev (0.050-3ubuntu5) hoary; urgency=low
+
+  * Add raid-devfs.sh to udev-udeb.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 14 Feb 2005 14:27:22 +0000
+
+udev (0.050-3ubuntu4) hoary; urgency=low
+
+  * extra/udev.rules: put removable SCSI (USB, FireWire) and USB block devices
+    into group "plugdev" instead of "disk" to allow hal to read the file
+    system type and device label. This replaces the old /etc/udev/hal.rules
+    method of hal. Doing it in udev is more consistent and also avoids #6235.
+  * Added extras/removable.sh and install it in debian/rules. This replaces
+    the old device-removable.sh script from hal.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon,  7 Feb 2005 09:26:47 +0100
+
+udev (0.050-3ubuntu3) hoary; urgency=low
+
+  * Add debian/patches/include_sys_stat from Jeff Bailey, to fix a compilation
+    error with klibc due to a missing #include <sys/stat.h> (Ubuntu #5826)
+
+ -- Matt Zimmerman <mdz@canonical.com>  Thu, 27 Jan 2005 18:04:11 -0800
+
+udev (0.050-3ubuntu2) hoary; urgency=low
+
+  * Set the default hotplug helper to /sbin/udevsend
+
+ -- Matt Zimmerman <mdz@canonical.com>  Sat,  8 Jan 2005 20:11:28 -0800
+
+udev (0.050-3ubuntu1) hoary; urgency=low
+
+  * Merge to new Debian version
+  * LSB'ified new code in init script
+
+ -- Martin Pitt <martin.pitt@canonical.com>  Wed,  5 Jan 2005 16:21:09 +0100
+
+udev (0.050-3) unstable; urgency=high
+
+  * Fixed the regexp in preinst which caused cd-aliases.rules to not be
+    enabled on upgrades. (Closes: #287225)
+  * Included scsi_id.config as an example. (Closes: #287959)
+  * Modified postinst and the init script to fail gracefully if the kernel
+    mounts a non-working tmpfs. (Closes: #288043)
+  * Added patch scsi_id_tmp: makes scsi_id create its temporary devices in
+    /dev instead of /tmp, which is read only when udevstart is run.
+    (Closes: #287959)
+
+ -- Marco d'Itri <md@linux.it>  Sat,  1 Jan 2005 23:57:26 +0100
+
+udev (0.050-2) unstable; urgency=medium
+
+  * Do not try to enable udev in postinst without a supported kernel.
+    (Closes: #287146)
+
+ -- Marco d'Itri <md@linux.it>  Sat, 25 Dec 2004 01:50:03 +0100
+
+udev (0.050-1ubuntu1) hoary; urgency=low
+
+  * Resynchronise with Debian.
+  * Manually resolve merge conflicts
+  * Remove overzealous replacement of echo with log_success_msg in init
+    script usage message
+
+ -- Matt Zimmerman <mdz@debian.org>  Sat, 25 Dec 2004 13:02:57 -0800
+
+udev (0.050-1) unstable; urgency=medium
+
+  * Added code to postinst to enable udev without rebooting.
+  * Stop trying to automatically restore the old /dev on removal, it cannot
+    made work.
+  * Fixed the init script to correctly recognize 2.6.1* kernels.
+    (Closes: #286188)
+  * Refuse to upgrade if the running kernel is too old. (Closes: #286530)
+  * Removed the scary warning about upgrades from devfs and all debconf code.
+  * New patch enable_after_udev disables udev if /dev/.udevdb/ does not exist.
+  * Fixed raid-devfs.sh and added support for Mylex controllers, courtesy
+    of Piotr Roszatycki. (Closes: #285066, #286809)
+  * Manually mount /proc before udevstart is run, because some scripts need
+    it. Stop running mountvirtfs, which is started again later anyway.
+
+ -- Marco d'Itri <md@linux.it>  Fri, 24 Dec 2004 13:46:13 +0100
+
+udev (0.048-3) unstable; urgency=medium
+
+  * devfs.rules: added support for /dev/{cciss,ida}/*. (Closes: #285066)
+  * New patch check_null_directory fixes core dump on amd64. (Closes: #285281)
+  * Improved the init script check for old kernels. (Closes: #285443)
+  * Depend on sed >= 3.95. (Closes: #285511)
+  * udev.permissions: fixed the inotify path.
+
+ -- Marco d'Itri <md@linux.it>  Wed, 15 Dec 2004 21:32:22 +0100
+
+udev (0.048-2) unstable; urgency=high
+
+  * Fixed again #283758, this time for real.
+
+ -- Marco d'Itri <md@linux.it>  Thu,  9 Dec 2004 19:27:45 +0100
+
+udev (0.048-1) unstable; urgency=medium
+
+  * New upstream release.
+  * devfs.rules, udev.rules: added Zaptel rules. (Closes: #284695)
+  * Made the init script fail if the system is running a kernel older
+    than 2.6.8. (Closes: #284782)
+  * Updated the udevtest-all script. (Closes: #284774)
+  * New patch no_strip builds unstripped executables with debugging symbols.
+  * Added a reportbug script.
+
+ -- Marco d'Itri <md@linux.it>  Thu,  9 Dec 2004 18:10:32 +0100
+
+udev (0.046-6) unstable; urgency=high
+
+  * Fixed preinst failure. (Closes: #284367, #284399)
+  * devfs.rules, udev.rules: added usb/cpad[0-9]*. (Closes: #284392)
+  * compat-full.rules: added ttyUSB[0-9]*. (Closes: #284264)
+  * Added a reportbug presubj file.
+  * High priority, because 0.046-5 fails to install and anyway it's
+    about time 046 moves to sarge.
+
+ -- Marco d'Itri <md@linux.it>  Mon,  6 Dec 2004 11:58:10 +0100
+
+udev (0.046-5) unstable; urgency=medium
+
+  * Make sure to create the default symlinks at install time even if some
+    other package already created a symlink for its own rules file.
+    (Closes: #283758)
+  * Added a note to README.Debian about sg nodes. (Closes: #271589)
+  * udev.rules, devfs.rules: fixed the names of the ALSA midi devices.
+    (Closes: #283527)
+  * Moved the rules using cdsymlinks.sh from udev.rules and compat.rules
+    to a new file cd-aliases.rules.
+    Added some code to preinst to automatically enable it at upgrade time.
+  * Cleaned up the rules which deal with CD devices.
+  * Removed from preinst the code needed to upgrade package versions older
+    than 0.024-9.
+
+ -- Marco d'Itri <md@linux.it>  Sat,  4 Dec 2004 14:49:44 +0100
+
+udev (0.046-4) unstable; urgency=medium
+
+  * Really move the scripts to /etc/udev/scripts/. (Closes: #283343)
+  * New upstream patch: fix_interfaces_renaming. (Closes: #283144)
+  * Deal with /etc/udev/rules.d/ being empty in postrm. (Closes: #283322)
+
+ -- Marco d'Itri <md@linux.it>  Sun, 28 Nov 2004 19:12:40 +0100
+
+udev (0.046-4ubuntu2) hoary; urgency=low
+
+  * Fix inotify permissions
+
+ -- Thom May <thom@planetarytramp.net>  Mon,  6 Dec 2004 11:15:59 +0100
+
+udev (0.046-4ubuntu1) hoary; urgency=low
+
+  * Merge to new Debian revision.
+
+ -- Martin Pitt <martin.pitt@canonical.com>  Mon, 29 Nov 2004 08:50:01 +0100
+
+udev (0.046-4) unstable; urgency=medium
+
+  * Really move the scripts to /etc/udev/scripts/. (Closes: #283343)
+  * New upstream patch: fix_interfaces_renaming. (Closes: #283144)
+  * Deal with /etc/udev/rules.d/ being empty in postrm. (Closes: #283322)
+
+ -- Marco d'Itri <md@linux.it>  Sun, 28 Nov 2004 19:12:40 +0100
+
+udev (0.046-3) unstable; urgency=medium
+
+  * Fixed and improved /etc/init.d/udev-mtab. (Closes: #283118)
+
+ -- Marco d'Itri <md@linux.it>  Fri, 26 Nov 2004 18:32:04 +0100
+
+udev (0.046-2ubuntu1) hoary; urgency=low
+
+  * Manual merge with new Debian release:
+    - init script changed heavily, rewrote LSB init function usage
+    - activated udeb build in debian/rules
+    - do not install udev.startup into the udeb, it conflicts with d-i's
+      current rootskel
+
+ -- Martin Pitt <martin.pitt@canonical.com>  Fri, 26 Nov 2004 16:06:57 +0100
+
+udev (0.046-2) unstable; urgency=medium
+
+  * Run udevstart at upgrade time only if udev.tdb exists. (Closes: #282310)
+  * Install a new init script udev-mtab to update /etc/mtab. (Closes: #282455)
+  * Raised the default size of the tmpfs to 5 MB. (Closes: #282518)
+  * New patch ignore_tmpfs_size_option makes udev ignore the tmpfs_size
+    option in udev.conf.
+  * New patch devname.patch, from CVS.
+  * udev.rules: sr* devices are renamed to scd*, with a compatibility symlink.
+  * udev.rules, compat.rules: use cdsymlinks.sh for all kinds of cdrom drives.
+    (Closes: #282348)
+  * Added to debian/rules some code to build udev-udeb, currently disabled.
+  * Moved all scripts to /etc/udev/scripts/.
+  * Fixed postrm to not fail if /.dev/ is not present. (Closes: #283068)
+
+ -- Marco d'Itri <md@linux.it>  Fri, 26 Nov 2004 13:21:38 +0100
+
+udev (0.046-1) unstable; urgency=medium
+
+  * New upstream release.
+  * links.conf: manually create /dev/net/tun too.
+  * Try to mount --move /.dev/ over /dev/ on package removal.
+  * Always use mount -n in the init script. (Closes: #281921)
+  * Add a man page for wait_for_sysfs. (Closes: #281239)
+
+ -- Marco d'Itri <md@linux.it>  Sat, 20 Nov 2004 15:44:01 +0100
+
+udev (0.042-1ubuntu3) hoary; urgency=low
+
+  * udev-udeb depends on hotplug-udeb, not hotplug.
+
+ -- Colin Watson <cjwatson@canonical.com>  Thu, 18 Nov 2004 19:05:43 +0000
+
+udev (0.042-1ubuntu2) hoary; urgency=low
+
+  * Add udev-udeb, for use in the installer.
+
+ -- Colin Watson <cjwatson@canonical.com>  Tue, 16 Nov 2004 10:16:35 +0000
+
+udev (0.042-1ubuntu1) hoary; urgency=low
+
+  * Resynchronised with Debian, resolved minor merging conflicts.
+  * Reverted the changes from 0.026-1ubuntu4 (plugdev extension), this will be
+    handled by the pmount package from now on (consensus with Marco d'Itri).
+  * Deleted leftover work/ directory from automatic merge attempt
+
+ -- Martin Pitt <martin.pitt@canonical.com>  Thu, 11 Nov 2004 13:10:21 +0100
+
+udev (0.042-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Point out again in README.Debian that rules files end in ".rules".
+    (Closes: #277920)
+  * devfs.rules, devfs.rules, udev.permissions: added pktcdvd/control.
+    (Closes: #278600)
+  * udev.permissions: added sonypi, misc/inotify.
+  * links.conf: manually create /dev/loop/0 and /dev/ppp, because their
+    drivers cannot be autoprobed in any way.
+    Please do not request to add other devices to the list.
+
+ -- Marco d'Itri <md@linux.it>  Sat, 30 Oct 2004 12:54:28 +0200
+
+udev (0.040-1ubuntu3) hoary; urgency=low
+
+  * Use "scd" device names in place of "sr", with a compatibility symlink for
+    the latter (Closes: Ubuntu#1909)
+
+ -- Matt Zimmerman <mdz@canonical.com>  Thu, 28 Oct 2004 23:15:53 -0700
+
+udev (0.040-1ubuntu2) hoary; urgency=low
+
+  * Resolve merge conflicts
+
+ -- Matt Zimmerman <mdz@canonical.com>  Thu, 28 Oct 2004 17:42:04 -0700
+
+udev (0.040-1ubuntu1) hoary; urgency=low
+
+  * Resynchronise with Debian.
+
+ -- Scott James Remnant <scott@canonical.com>  Thu, 28 Oct 2004 09:53:41 +0100
+
+udev (0.040-1) unstable; urgency=medium
+
+  * New upstream release.
+    + Removed patch hotplug.dev_exec, merged upstream.
+  * devfs.rules, udev.rules, udev.permissions: moved pktcdvd* to pktcdvd/,
+    as requested by the udftools maintainer. (Closes: #274110)
+  * scsi-devfs.sh: create .../disc instead of .../disk. (Closes: #276484)
+  * Added a workaround to mount the tmpfs even if .udev.tdb exists in the
+    static /dev/ directory.
+
+ -- Marco d'Itri <md@linux.it>  Fri, 22 Oct 2004 16:36:57 +0200
+
+udev (0.034-1) unstable; urgency=medium
+
+  * New upstream release.
+    + Removed patch udev-whitespace-bug-01.patch, merged upstream.
+  * New debconf translation: nl. (Closes: #274895)
+  * udev.permissions: made /dev/mouse*, /dev/input/mouse* and /dev/input/mice
+    mode 600. (Closes: #275392)
+  * udev.rules: fixed errors in the sg and DVB rules. (Closes: #275469)
+
+ -- Marco d'Itri <md@linux.it>  Sat,  9 Oct 2004 14:50:22 +0200
+
+udev (0.032-2) unstable; urgency=medium
+
+  * Fixed postrm failure. (Closes: #274272)
+  * Added support for DVB devices. (Closes: #274335)
+  * Added partial support for an alternative mount point.
+
+ -- Marco d'Itri <md@linux.it>  Sun,  3 Oct 2004 12:32:48 +0200
+
+udev (0.032-1) unstable; urgency=medium
+
+  * New upstream release.
+    + Removed patch udevstart-fix-01.patch, merged upstream.
+  * Delete rules.d/ symlinks in postrm. (Closes: #271570)
+  * Fixed a variable name in cdsymlinks.conf. (Closes: #271656)
+  * Make preinst not fail if start-stop-daemon --stop fails. (Closes: #273098)
+  * Make inputdev.sh accept an optional keywords regexp. (Closes: #272434)
+  * udev.permissions: removed djs* because it's obsolete. (Closes: #272188)
+  * devfs.rules: fixed the "hd[a-z]*" pattern. (Closes: #271723)
+
+ -- Marco d'Itri <md@linux.it>  Thu, 30 Sep 2004 16:12:59 +0200
+
+udev (0.031-2) unstable; urgency=high
+
+  * New patch udevstart-fix-01.patch fixes %-arguments passed to PROGRAMs.
+    (Closes: #271372)
+  * Added simple-cd-aliases.rules, not enabled by default.
+  * Added a note to README.Debian about timestamps and non-UTC system
+    clocks. (Closes: #259697)
+
+ -- Marco d'Itri <md@linux.it>  Mon, 13 Sep 2004 10:03:23 +0200
+
+udev (0.031-1) unstable; urgency=medium
+
+  * New upstream release. Fixes:
+    + At boot time, create the mem devices before the others. (Closes: #258590)
+  * Run mountvirtfs in the init script, just to be sure. (See #258214)
+  * Updated cdsymlinks.sh, courtesy of Darren Salt. (Closes: #247179, #255150)
+  * scsi-devfs.sh: added support for nst* devices. (Closes: #266419)
+  * Fix installation of compat-full.rules in postinst. (Closes: #261559)
+  * udev.permissions: made /dev/input/js* and /dev/input/mouse* world
+    readable and /dev/input/mice world writeable. (Closes: #260941)
+  * udev.permissions: made /dev/usb/legousbtower world writeable.
+    (Closes: #265987)
+  * udev.rules, devfs.rules: added /dev/cpu/*/. (Closes: #265922)
+  * udev.rules, devfs.rules: fixed some wildcards. (Closes: #269707)
+  * udev.rules, devfs.rules: added /dev/input/uinput. (Closes: #270446)
+  * New script inputdev.sh to support different permissions for some
+    input events devicse, by Darren Salt. (Closes: #265799)
+
+ -- Marco d'Itri <md@linux.it>  Sun, 12 Sep 2004 20:11:57 +0200
+
+udev (0.030-1) unstable; urgency=medium
+
+  * New upstream release.
+  * New debconf translation: de. (Closes: #254545)
+  * rtc: 660 => 664
+  * input/*: 644 => 600 (Closes: #257165)
+
+ -- Marco d'Itri <md@linux.it>  Sun, 11 Jul 2004 16:59:49 +0200
+
+udev (0.026-1ubuntu5) warty; urgency=low
+
+  * Create joystick devices world-readable
+
+ -- Matt Zimmerman <mdz@canonical.com>  Fri, 17 Sep 2004 15:22:54 -0700
+
+udev (0.026-1ubuntu4) warty; urgency=low
+
+  * Added and installed extra/removable.sh to test whether a device is
+    removable (this will only work on kernels 2.6.8 and up; on earlier kernels
+    this script considers every device as non-removable)
+  * udev.rules: put IDE and SCSI devices in group 'plugdev' if they are
+    removable (Warty bug #996)
+  * udev.postinst: Ensure that group 'plugdev' exists.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon,  6 Sep 2004 12:21:26 +0200
+
+udev (0.026-1ubuntu3) warty; urgency=low
+
+  * Added versioned depend on lsb-base
+
+ -- Nathaniel McCallum <npmccallum@canonical.com>  Fri,  3 Sep 2004 15:16:38 -0400
+
+udev (0.026-1ubuntu2) warty; urgency=low
+
+  * debian/udev.init: pretty initscript
+
+ -- Nathaniel McCallum <npmccallum@canonical.com>  Fri,  3 Sep 2004 12:13:37 -0400
+
+udev (0.026-1ubuntu1) warty; urgency=high
+
+  * Patch udev.permissions such that /dev/input devices are mode 0600 rather
+    than 0644.  This prevents a security issue where any user could, for
+    example, sniff passwords typed at the console
+
+ -- Matt Zimmerman <mdz@alcor.net>  Mon,  5 Jul 2004 14:43:17 -0700
+
+udev (0.026-1) unstable; urgency=medium
+
+  * New upstream release. (Closes: #251566)
+  * udev_dbus and udev_selinux have been removed. (Closes: #243429)
+  * udev.permissions: added pktcdvd[0-9]*. (Closes: #252383)
+  * Depending on initscripts >= 2.85-16 allows to simplify the init script.
+  * Removed patches devfs.sh-ide-floppy, devnode_to_devname.patch and
+    extras_no_logging which have been merged upstream.
+
+ -- Marco d'Itri <md@linux.it>  Tue,  8 Jun 2004 11:27:54 +0200
+
+udev (0.024-9) unstable; urgency=low
+
+  * Removed MAKEDEV-wrapper and Depend on makedev > 2.3.1-70. (Closes: #245441)
+  * /etc/udev/.dev/ moved to /.dev/. (Closes: #246592)
+    If you do not want to see it anyway, just rmdir it.
+    You will have to manually remove /etc/udev/.dev/ after the next reboot.
+    You want to reboot soon anyway because MAKEDEV has been updated to look
+    for the new directory.
+  * Added a script to create by default a /dev/cdrom symlink, courtesy of
+    Michal Čihař. (Closes: #247179)
+  * Added Japanese debconf template translation. (Closes: #245434)
+  * Add /dev/misc/nvram to devfs.rules. (Closes: #246125)
+  * Fixed the group of /dev/fb*. (Closes: #246011)
+  * When installing on a devfs system enable compat-full.rules if
+    /dev/tty1 exists. (Closes: #251146)
+  * Removed support for $udev_root from the init script. (Closes: #249183)
+  * Do not start udev if the kernel lacks tmpfs support. (Closes: #250476)
+  * Make the nvram device g+rw and owned by group nvram.
+
+ -- Marco d'Itri <md@linux.it>  Fri, 28 May 2004 20:32:19 +0200
+
+udev (0.024-7) unstable; urgency=high
+
+  * Fixed the permissions of /dev. (Closes: #245073)
+  * Added Czech debconf template translation. (Closes: #244423)
+  * Minor preinst improvements. (Closes: #245154)
+  * Fixed the permissions of /dev/st*. (Closes: #244239)
+  * Added rules for the tun/tap devices. (Closes: #244025)
+  * Moved the permissions file to /etc/udev/permissions.d/. (Closes: #243949)
+
+ -- Marco d'Itri <md@linux.it>  Thu, 22 Apr 2004 01:53:33 +0200
+
+udev (0.024-6) unstable; urgency=high
+
+  * Make postinst detect correctly if dbus is installed. (Closes: #243817)
+
+ -- Marco d'Itri <md@linux.it>  Thu, 15 Apr 2004 19:36:49 +0200
+
+udev (0.024-5) unstable; urgency=medium
+
+  * Ignore broken links when updating /etc/udev/rules.d/. (Closes: #243249)
+  * Use invoke-rc.d to restart d-bus. (Closes: #243336)
+  * If devfs is being used, use devfs-style names by default. (Closes: #243164)
+  * Added support for IDE floppy drives. (Closes: #243093)
+  * Added French debconf template translation. (Closes: #242890)
+  * Conflict with lvm-common < 1.5.13. (Closes: #236346)
+  * Let's try to only Recommend dbus and see what happens. (Closes: #240500)
+
+ -- Marco d'Itri <md@linux.it>  Wed, 14 Apr 2004 14:44:43 +0200
+
+udev (0.024-4) unstable; urgency=high
+
+  * Fix the names of USB printers. (Closes: #242512)
+  * Added a new rules file compat-full.rules. (Closes: #241364)
+  * udev-devfs.rules and udev-compat.rules have been renamed, the preinst
+    script tries to fix the /etc/udev/rules.d/ symlinks, if any exists.
+    It cannot recognize some corner cases, so please check your system
+    after the upgrade.
+
+ -- Marco d'Itri <md@linux.it>  Thu,  8 Apr 2004 02:07:43 +0200
+
+udev (0.024-3) unstable; urgency=high
+
+  * Fixed SCSI CD names in udev.rules. (Closes: #242443)
+
+ -- Marco d'Itri <md@linux.it>  Tue,  6 Apr 2004 20:43:40 +0200
+
+udev (0.024-2) unstable; urgency=high
+
+  * New patch devnode_to_devname.patch to fix broken udev_dbus,
+    courtesy of Sjoerd Simons. (Closes: #242283, #242374)
+  * Added rules to set the permissions of rfcomm[0-9]* and hd[a-s].
+    (Closes: #242306)
+  * New debconf template: pt_BR. (Closes: #242089)
+  * Read the permissions of /dev/pts/ from /etc/defaults/devpts.
+    (Closes: #242054)
+
+ -- Marco d'Itri <md@linux.it>  Tue,  6 Apr 2004 18:21:30 +0200
+
+udev (0.024-1) unstable; urgency=high
+
+  * New upstream release.
+    "high" urgency because the package currently in testing sucks too much.
+  * Removed patch ide-devfs_fix_no_media, which has been merged upstream.
+  * Clarify README.Debian. (Closes: #241318)
+
+ -- Marco d'Itri <md@linux.it>  Sat,  3 Apr 2004 14:23:09 +0200
+
+udev (0.023-3) unstable; urgency=medium
+
+  * Changed again the default rules source: now udev.conf will default to
+    reading all files in /etc/udev/rules.d/. If the directory is empty,
+    postinst will create in it a symlink to ../udev.rules.
+    Please double check that it's the rules set you really want to use.
+  * Depends on libselinux1-dev. (Closes: #240755)
+  * Fixed the permissions of /dev/rtc. (Closes: #240905)
+  * Let's try moving /sbin/udev_dbus to /usr/sbin/. (See #240500)
+
+ -- Marco d'Itri <md@linux.it>  Wed, 31 Mar 2004 17:18:51 +0200
+
+udev (0.023-2) unstable; urgency=medium
+
+  * Fixed cdrom group permissions. (Closes: #240521)
+  * Fixed symlinks in /etc/dev.d/. (Closes: #240517)
+  * Allow db_input calls to fail. (Closes: #240520)
+
+ -- Marco d'Itri <md@linux.it>  Sun, 28 Mar 2004 19:16:59 +0200
+
+udev (0.023-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Enabled SE Linux support. Untested.
+  * I wonder if I should make the package not depend on the dbus and
+    selinux libraries, as they are only used by the little programs
+    in /etc/dev.d/. I encourage comments.
+  * New patch extras_no_logging: needed to make the dbus and selinux
+    helpers compile. Side effect: disables logging for them.
+  * Removed patch udev022_namedev_symlink_fix.patch, merged upstream.
+  * Removed patch run_usr_sbin_udev which is not needed anymore.
+  * Use tmpfs instead of ramfs. (Closes: #239941)
+  * Use debconf to print the reboot notice and a warning for devfs users,
+    patch courtesy of Scott Robinson <scott@tranzoa.com>. (Closes: #240291)
+  * Make sure that all cdrom drives are recognized in udev.rules.
+    (Closes: #239877)
+  * Make sg* devices of CD drives owned by the cdrom group. (Closes: #240315)
+  * Modified the init script to unmount /dev/pts and remount it on the
+    tmpfs.
+
+ -- Marco d'Itri <md@linux.it>  Sat, 27 Mar 2004 14:49:37 +0100
+
+udev (0.022-1) unstable; urgency=medium
+
+  * The "millions of flies cannot be wrong" release.
+  * Switched the default /dev layout to traditional style.
+    (Closes: #237482, #237484)
+  * Removed the patches udevstart_no_retval and strip_trailing_blanks
+    because they have been merged upstream.
+  * New patch run_usr_sbin_udev: first try to run /usr/sbin/udev and then
+    /sbin/udev if the first does not exist. This is useful to support
+    D-BUS without moving all the related libraries in /lib.
+  * New patch udev022_namedev_symlink_fix.patch, upstream bugfix.
+  * Make the MAKEDEV wrapper smarter by checking if something has really
+    been mounted over /etc/udev/.dev.
+  * Depends on sysvinit (>= 2.85-10) to use the already mounted /proc
+    and /sys.
+  * Limit the /dev ramfs size to 1 MB, I hope this will be enough for
+    any reasonable system.
+  * Cleaned up the init script. (Closes: #237243)
+  * New patch ide-devfs_fix_no_media: make ide-devfs.sh check if
+    /proc/ide/*/media really exists before using it.
+  * Updated udev.rules and udev.permissions.
+    (Closes: #236708, #236602, #237478)
+  * Added partial and untested support for SCSI tapes to scsi-devfs.sh.
+    (Closes: #238825)
+
+ -- Marco d'Itri <md@linux.it>  Sun, 21 Mar 2004 13:31:02 +0100
+
+udev (0.021-1) unstable; urgency=medium
+
+  * New upstream release.
+  * New patch udevstart_no_retval makes udevsend always return success.
+  * New patch strip_trailing_blanks makes comparisons of sysfs fields
+    ignore trailing blanks.
+  * Removed patches fix_expr, man-dashes.diff, no_error_on_enoent,
+    udev019_symlink.patch because they have been merged upstream.
+
+ -- Marco d'Itri <md@linux.it>  Thu,  4 Mar 2004 02:25:35 +0100
+
+udev (0.019-3) unstable; urgency=low
+
+  * Initial release. (Closes: #221915)
+  * kill udevd on upgrade.
+  * Removed support for multiple files in $udev_rules, now all files matching
+    /etc/udev/*.rules will be parsed.
+  * Make the ide/*/cd devices owned by cdrom group.
+  * Added default aliases for ttyN, ttySN and lpN.
+  * New patch: man-dashes.diff, fixes unescaped dashes in the man pages
+    (by Philipp Matthias Hahn).
+  * Added an updated scsi-devfs.sh from Daniel Mueller <danm@gmx.li>.
+
+ -- Marco d'Itri <md@linux.it>  Tue,  2 Mar 2004 19:37:30 +0100
