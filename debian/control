@@ -1,7 +1,8 @@
 Source: udev
 Section: admin
 Priority: important
-Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Maintainer: Pexip AS <packaging@pexip.com>
+XSBC-Pexip-Original-Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 Standards-Version: 3.9.2
 Build-Depends: debhelper (>= 8.1.2ubuntu2),
  dh-autoreconf,
@@ -23,6 +24,7 @@ Build-Depends: debhelper (>= 8.1.2ubuntu2),
  gawk
 Vcs-Bzr: https://code.launchpad.net/~ubuntu-core-dev/ubuntu/precise/udev/ubuntu
 Homepage: http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html
+XS-Pexip-Upstream: http://archive.ubuntu.com/ubuntu/ precise
 
 Package: udev
 Architecture: any

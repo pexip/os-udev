@@ -1,3 +1,9 @@
+udev (175-0ubuntu9.4pexip1) pexip; urgency=low
+
+  * Prepare Pexip packaging
+
+ -- John-Mark Bell <jmb@pexip.com>  Wed, 25 Dec 2013 05:00:56 +0000
+
 udev (175-0ubuntu9.4) precise-proposed; urgency=low
 
   * 00git-keymaps.patch: Update to the latest keymaps from upstream, as per
