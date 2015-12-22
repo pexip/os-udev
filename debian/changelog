@@ -1,3 +1,12 @@
+udev (175-0ubuntu9.4pexip2) pexip; urgency=low
+
+  * 00git-persistent-net-xen.patch: Drop: superceded
+  * ignore-additional-virtual-ifaces.patch: Do not create persistent
+    net rules for VirtualBox, Xen, or Azure/Hyper-V MAC addreses.
+    Additionally, extend KVM and VMware MAC address blacklists.
+
+ -- John-Mark Bell <jmb@pexip.com>  Tue, 22 Dec 2015 11:52:43 +0000
+
 udev (175-0ubuntu9.4pexip1) pexip; urgency=low
 
   * Prepare Pexip packaging

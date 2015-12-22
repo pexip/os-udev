@@ -1,5 +1,4 @@
 00git-keymaps.patch
-00git-persistent-net-xen.patch
 builtin-block-polling.patch
 libudev-revert-SOCK_NONBLOCK.patch
 load-fbcon.patch
@@ -11,3 +10,4 @@ service-sbindir.patch
 fix-race-condition-of-serio-driver-module-not-loading.patch
 persistent-input-symlinks-iface00.patch
 ignore-ravello-systems-virtual-ifaces.patch
+ignore-additional-virtual-ifaces.patch

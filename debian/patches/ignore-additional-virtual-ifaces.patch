@@ -1,0 +1,41 @@
+diff --git a/extras/rule_generator/75-persistent-net-generator.rules b/extras/rule_generator/75-persistent-net-generator.rules
+index 539807c..f3612d9 100644
+--- a/extras/rule_generator/75-persistent-net-generator.rules
++++ b/extras/rule_generator/75-persistent-net-generator.rules
+@@ -30,15 +30,34 @@ ENV{MATCHADDR}="$attr{address}"
+ ENV{MATCHIFTYPE}="$attr{type}"
+ 
+ # ignore KVM virtual interfaces
+-ENV{MATCHADDR}=="52:54:00:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="52:54:00:*|54:52:00:*", GOTO="persistent_net_generator_end"
+ # ignore VMWare virtual interfaces
+-ENV{MATCHADDR}=="00:0c:29:*|00:50:56:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:0c:29:*|00:50:56:*|00:05:69:*|00:1c:14:*", GOTO="persistent_net_generator_end"
+ # ignore Hyper-V virtual interfaces
+ ENV{MATCHADDR}=="00:15:5d:*", GOTO="persistent_net_generator_end"
+ # ignore Eucalyptus virtual interfaces
+ ENV{MATCHADDR}=="d0:0d:*", GOTO="persistent_net_generator_end"
+ # ignore Ravello Systems virtual interfaces
+ ENV{MATCHADDR}=="2c:c2:60:*", GOTO="persistent_net_generator_end"
++# ignore VirtualBox virtual interfaces
++ENV{MATCHADDR}=="08:00:27:*", GOTO="persistent_net_generator_end"
++# ignore Xen virtual interfaces
++ENV{MATCHADDR}=="00:16:3e:*", GOTO="persistent_net_generator_end"
++# ignore Windows Azure Hyper-V virtual interfaces
++ENV{MATCHADDR}=="00:03:ff:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:0d:3a:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:1d:d8:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:12:5a:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:17:fa:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:22:48:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:25:ae:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="00:50:f2:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="28:18:78:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="50:1a:c5:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="60:45:bd:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="7c:1e:52:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="7c:ed:8d:*", GOTO="persistent_net_generator_end"
++ENV{MATCHADDR}=="dc:b4:c4:*", GOTO="persistent_net_generator_end"
+ 
+ # These vendors are known to violate the local MAC address assignment scheme
+ # Interlan, DEC (UNIBUS or QBUS), Apollo, Cisco, Racal-Datacom
